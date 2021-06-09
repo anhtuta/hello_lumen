@@ -11,18 +11,18 @@ class LyricController extends Controller
     public function getLyricByFileName(Request $request)
     {
         if (!$request->file) {
-            return 'Error: file cannot be empty!';
+            return response()->json(["code" => 404000, "message" => "Error: file cannot be empty!"], 404);
         }
 
-        return $request->file;
-
-        // $lyricFolder = env('LL_LYRIC_FOLDER', '');
-        // $filePath = $lyricFolder . DIRECTORY_SEPARATOR . $request->file;
-        // if (!file_exists($filePath)) {
-        //     return "File doesn't exist!";
-        // } else {
-        //     $fileContent = file_get_contents($filePath);
-        //     return $fileContent;
-        // }
+        $lyricFolder = env('LL_LYRIC_FOLDER', '');
+        $filePath = $lyricFolder . DIRECTORY_SEPARATOR . $request->file;
+        if (!file_exists($filePath)) {
+            return response()->json(["code" => 404003, "message" => "Lyric doesn't exist!"], 404);
+        } else {
+            $type = 'text/plain';
+            $headers = ['Content-Type' => $type];
+            $response = new BinaryFileResponse($filePath, 200, $headers);
+            return $response;
+        }
     }
 }
