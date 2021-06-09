@@ -10,10 +10,15 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class SongController extends Controller
 {
-    public function getAllSongs()
+    public function getAllSongs(Request $request)
     {
-        $songs = Song::all();
-        return response()->json($songs);
+        $sortBy = $request->sortBy ? $request->sortBy : 'listens';
+        if ($sortBy == 'createdDate') $sortBy = 'created_date';
+
+        $sortOrder = $request->sortOrder ? $request->sortOrder : 'DESC';
+
+        $songs = Song::orderBy($sortBy, $sortOrder)->get();
+        return $songs;
     }
 
     public function getSongById($id)
@@ -81,14 +86,15 @@ class SongController extends Controller
         return response()->json("New song has been created!");
     }
 
-    public function updateListens(Request $request) {
+    public function updateListens(Request $request)
+    {
         if (!$request->file) {
             return response()->json(["code" => 404000, "message" => "Error: file cannot be empty!"], 404);
         }
 
         $songs = DB::select("SELECT * FROM song WHERE file_name = ?", [$request->file]);
 
-        if(!$songs || sizeof($songs) == 0) {
+        if (!$songs || sizeof($songs) == 0) {
             return response()->json(["code" => 404001, "message" => "Song doesn't exist!"], 404);
         } else {
             $newListens = $songs[0]->listens + 1;

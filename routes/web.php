@@ -37,3 +37,4 @@ $router->put('api/song/listens', 'Liliana\SongController@updateListens');
  * Lyric routes
  ***********/
 $router->get('api/lyric', 'Liliana\LyricController@getLyricByFileName');
+$router->get('api/lyric/update/offset', 'Liliana\LyricController@updateOffset');
