@@ -14,48 +14,24 @@
 */
 
 /***********
- * dummy routes
- ***********/
-$router->get('/', function () use ($router) {
-    return $router->app->version();
-});
-
-$router->get('foo', function () {
-    return 'GET:Hello World foo';
-});
-
-$router->post('foo', function () {
-    return 'POST:Hello World foo';
-});
-
-/***********
  * User routes
  ***********/
-// $router->get('user/{id}', function ($id) {
-//     return 'User '.$id;
-// });
-
 $router->get('user/{id}', 'UserController@getUserById');
-
-$router->post('user', 'UserController@createUser');
-
-$router->put('user/{id}', 'UserController@updateUser');
-
 $router->get('user2[/{name}]', function ($name = null) {
     return 'Name = ' . $name;
 });
+$router->post('user', 'UserController@createUser');
+$router->put('user/{id}', 'UserController@updateUser');
 
 /***********
  * Song routes
  ***********/
 $router->get('api/song/all', 'Liliana\SongController@getAllSongs');
 $router->get('api/song/by-id/{id}', 'Liliana\SongController@getSongById');
-
-// get mp3 file by file param
 $router->get('api/song', 'Liliana\SongController@getSong');
-
-// get album file by file param
 $router->get('api/song/album', 'Liliana\SongController@getAlbum');
+
+$router->put('api/song/listens', 'Liliana\SongController@updateListens');
 
 /***********
  * Lyric routes

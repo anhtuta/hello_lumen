@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Liliana;
 use App\Http\Controllers\Controller;
 use App\Models\Song;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class SongController extends Controller
@@ -78,5 +79,22 @@ class SongController extends Controller
         $song->artist = $request->artist;
         $song->save();
         return response()->json("New song has been created!");
+    }
+
+    public function updateListens(Request $request) {
+        if (!$request->file) {
+            return response()->json(["code" => 404000, "message" => "Error: file cannot be empty!"], 404);
+        }
+
+        $songs = DB::select("SELECT * FROM song WHERE file_name = ?", [$request->file]);
+
+        if(!$songs || sizeof($songs) == 0) {
+            return response()->json(["code" => 404001, "message" => "Song doesn't exist!"], 404);
+        } else {
+            $newListens = $songs[0]->listens + 1;
+            $id = $songs[0]->id;
+            DB::update("UPDATE song SET listens = ? WHERE id = ?", [$newListens, $id]);
+            return "Updated listens: " . $songs[0]->title . " (" . $songs[0]->artist . "): " . $newListens;
+        }
     }
 }
