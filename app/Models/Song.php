@@ -17,7 +17,7 @@ class Song extends Model
 
     // The attributes that should be hidden for arrays
     // We can use either visible or hidden
-    protected $hidden = ['created_date', 'file_name', 'image_name', 'image_url'];
+    protected $hidden = ['created_date', 'file_name', 'image_name', 'image_url', 'is_deleted'];
 
     protected $appends = array('formatCreatedDate', 'fileName', 'imageName', 'imageUrl');
 

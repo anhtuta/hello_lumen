@@ -17,7 +17,7 @@ class LyricController extends Controller
         $lyricFolder = env('LL_LYRIC_FOLDER', '');
         $filePath = $lyricFolder . DIRECTORY_SEPARATOR . $request->file;
         if (!file_exists($filePath)) {
-            return response()->json(["code" => 404003, "message" => "Lyric doesn't exist!"], 404);
+            return "Lyric doesn't exist!";
         } else {
             $type = 'text/plain';
             $headers = ['Content-Type' => $type];

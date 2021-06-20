@@ -10,6 +10,21 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class SongController extends Controller
 {
+    public function getSongs(Request $request)
+    {
+        $size = $request->size;
+
+        $sortBy = $request->sortBy ? $request->sortBy : 'listens';
+        if ($sortBy == 'createdDate') $sortBy = 'created_date';
+
+        $sortOrder = $request->sortOrder ? $request->sortOrder : 'DESC';
+
+        $songs = Song::where('is_deleted', '0')
+            ->orderBy($sortBy, $sortOrder)
+            ->paginate($size);
+        return $songs;
+    }
+
     public function getAllSongs(Request $request)
     {
         $sortBy = $request->sortBy ? $request->sortBy : 'listens';
@@ -17,22 +32,20 @@ class SongController extends Controller
 
         $sortOrder = $request->sortOrder ? $request->sortOrder : 'DESC';
 
-        $songs = Song::orderBy($sortBy, $sortOrder)->get();
+        $songs = Song::where('is_deleted', '0')
+            ->orderBy($sortBy, $sortOrder)
+            ->get();
         return $songs;
     }
 
     public function getSongById($id)
     {
-        $songs = Song::find($id);
-        return response()->json($songs);
+        $song = Song::find($id);
+        return response()->json($song);
     }
 
-    public function getSong(Request $request)
+    private function getFilePathByFileName($fileName)
     {
-        if (!$request->file) {
-            return response()->json(["code" => 404000, "message" => "Error: file cannot be empty!"], 404);
-        }
-
         $mp3Folder = env('LL_MP3_FOLDER', '');
         $listOfFolders = scandir($mp3Folder);
         $totalFolder = count($listOfFolders);
@@ -40,7 +53,7 @@ class SongController extends Controller
 
         for ($i = 0; $i < $totalFolder; $i++) {
             if ($listOfFolders[$i] != '.' && $listOfFolders[$i] != '..') {
-                $filePath = $mp3Folder . DIRECTORY_SEPARATOR . $listOfFolders[$i] . DIRECTORY_SEPARATOR . $request->file;
+                $filePath = $mp3Folder . DIRECTORY_SEPARATOR . $listOfFolders[$i] . DIRECTORY_SEPARATOR . $fileName;
                 if (file_exists($filePath)) {
                     $path = $filePath;
                     break;
@@ -48,6 +61,16 @@ class SongController extends Controller
             }
         }
 
+        return $path;
+    }
+
+    public function getSongByFile(Request $request)
+    {
+        if (!$request->file) {
+            return response()->json(["code" => 404000, "message" => "Error: file cannot be empty!"], 404);
+        }
+
+        $path = $this->getFilePathByFileName($request->file);
         if (!$path) {
             return response()->json(["code" => 404001, "message" => "Song doesn't exist!"], 404);
         } else {
@@ -58,7 +81,7 @@ class SongController extends Controller
         }
     }
 
-    public function getAlbum(Request $request)
+    public function getAlbumByFile(Request $request)
     {
         if (!$request->file) {
             return response()->json(["code" => 404000, "message" => "Error: file cannot be empty!"], 404);
@@ -84,6 +107,27 @@ class SongController extends Controller
         $song->artist = $request->artist;
         $song->save();
         return response()->json("New song has been created!");
+    }
+
+    public function deleteSong($id)
+    {
+        // Check if exist song
+        $song = Song::find($id);
+        if (!$song) {
+            return response()->json(["code" => 404003, "message" => "Error: Song not found!"], 404);
+        }
+
+        // Delete file associated with this song
+        $filePath = $this->getFilePathByFileName($song->file_name);
+        if (!unlink($filePath)) {
+            return response()->json(["code" => 400000, "message" => "Error: Cannot delete a file!"], 400);
+        }
+
+        // Delete this song in database by updating is_deleted column
+        DB::table('song')
+            ->where('id', $id)
+            ->update(['is_deleted' => 1]);
+        return "Song has been deleted!";
     }
 
     public function updateListens(Request $request)
