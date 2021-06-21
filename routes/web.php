@@ -12,6 +12,9 @@
 | and give it the Closure to call when that URI is requested.
 |
 */
+$router->get('hello-world', function () {
+    return 'Hello world!';
+});
 
 /***********
  * User routes
@@ -26,19 +29,24 @@ $router->put('user/{id}', 'UserController@updateUser');
 /***********
  * Song routes
  ***********/
-$router->get('api/song', 'Liliana\SongController@getSongs');  // with pagination
-$router->get('api/song/all', 'Liliana\SongController@getAllSongs');
-$router->get('api/song/id/{id}', 'Liliana\SongController@getSongById');
-$router->get('api/song/file', 'Liliana\SongController@getSongByFile');
-$router->post('api/song', 'Liliana\SongController@createSong');
-$router->put('api/song/id/{id}', 'Liliana\SongController@updateSong');
-$router->delete('api/song/id/{id}', 'Liliana\SongController@deleteSong');
-$router->get('api/song/album', 'Liliana\SongController@getAlbumByFile');
+$router->group(['prefix' => 'api/song'], function () use ($router) {
+    $router->get('', 'Liliana\SongController@getSongs');  // with pagination
+    $router->post('', 'Liliana\SongController@createSong');
+    $router->get('/all', 'Liliana\SongController@getAllSongs');
+    $router->get('/file', 'Liliana\SongController@getSongByFile');
+    $router->get('/id/{id}', 'Liliana\SongController@getSongById');
+    $router->put('/id/{id}', 'Liliana\SongController@updateSong');
+    $router->delete('/id/{id}', 'Liliana\SongController@deleteSong');
+    $router->get('/album', 'Liliana\SongController@getAlbumByFile');
+    $router->put('/listens', 'Liliana\SongController@updateListens');
+    $router->get('/type/all', 'Liliana\SongController@getAllTypes');
+});
 
-$router->put('api/song/listens', 'Liliana\SongController@updateListens');
 
 /***********
  * Lyric routes
  ***********/
-$router->get('api/lyric', 'Liliana\LyricController@getLyricByFileName');
-$router->get('api/lyric/update/offset', 'Liliana\LyricController@updateOffset');
+$router->group(['prefix' => 'api/lyric'], function () use ($router) {
+    $router->get('', 'Liliana\LyricController@getLyricByFileName');
+    $router->get('/update/offset', 'Liliana\LyricController@updateOffset');
+});

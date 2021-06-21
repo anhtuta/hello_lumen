@@ -147,4 +147,9 @@ class SongController extends Controller
             return "Updated listens: " . $songs[0]->title . " (" . $songs[0]->artist . "): " . $newListens;
         }
     }
+
+    public function getAllTypes() {
+        $types = DB::select("SELECT DISTINCT type FROM song");
+        return response()->json($types);
+    }
 }
