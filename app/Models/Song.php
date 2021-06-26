@@ -12,6 +12,8 @@ class Song extends Model
 
     protected $table = 'song';
 
+    const CREATED_AT = 'created_date';
+
     // The attributes that should be visible in arrays
     // protected $visible = ['title', 'artist', 'formatCreatedDate', 'createdDate'];
 
