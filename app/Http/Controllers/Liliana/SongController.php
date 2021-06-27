@@ -100,12 +100,21 @@ class SongController extends Controller
         }
     }
 
-    private function savePicture($pictureBase64, $imageName)
+    private function savePicture($pictureBase64, $pictureName)
     {
         $pictureFolder = env('LL_PICTURE_FOLDER', '');
-        $fp = fopen($pictureFolder . DIRECTORY_SEPARATOR . $imageName, "w+");
+        $fp = fopen($pictureFolder . DIRECTORY_SEPARATOR . $pictureName, "w+");
         fwrite($fp, base64_decode($pictureBase64));
         fclose($fp);
+    }
+
+    private function removePicture($pictureName) {
+        $pictureFolder = env('LL_PICTURE_FOLDER', '');
+        $picturePath = $pictureFolder . DIRECTORY_SEPARATOR . $pictureName;
+        if(!unlink($picturePath)) {
+            return true;
+        }
+        return false;
     }
 
     private function saveMp3File($file, $type, $fileName)
@@ -114,6 +123,11 @@ class SongController extends Controller
         $file->move($mp3Folder . DIRECTORY_SEPARATOR . $type, $fileName);   // Laravel thì dùng method storeAs nhé!
     }
 
+    /**
+     * Create song. Note: nếu song đã có trong database nhưng tạm thời đang bị xóa: khôi phục lại,
+     * đồng thời xóa picture cũ đi và tạo picture mới (làm như vậy để đổi tên picture,
+     * tránh bị cache phía browser)
+     */
     public function createSong(Request $request)
     {
         DB::enableQueryLog();
@@ -124,7 +138,7 @@ class SongController extends Controller
         $type = $request->type;
         $file = $request->file('file'); // or using $request->file; is OK
         $fileName = $artist . " - " . $title . ".mp3";
-        $imageName = $artist . " - " . $title . ".jpg";
+        $pictureName = $artist . " - " . $title  . '_' . time() . ".jpg";  // add time to name to prevent cache in browser
 
         $song = Song::where('title', $title)
             ->where('artist', $artist)
@@ -137,14 +151,20 @@ class SongController extends Controller
             $song->listens = 0;
         } else if ($song->is_deleted == 0) {
             return response()->json(["code" => 400004, "message" => "Error: This song has already existed!"], 400);
+        } else {
+            if($song->image_name) {
+                if(!$this->removePicture(($song->image_name))) {
+                    return response()->json(["code" => 400005, "message" => "Error: Cannot delete old picture!"], 400);
+                }
+            }
         }
 
         $this->saveMp3File($file, $type, $fileName);
 
         if (isset($pictureBase64)) {
-            $song->image_name = $imageName;
-            $song->image_url = "/api/song/picture?file=" . $imageName;
-            $this->savePicture($pictureBase64, $imageName);
+            $song->image_name = $pictureName;
+            $song->image_url = "/api/song/picture?file=" . $pictureName;
+            $this->savePicture($pictureBase64, $pictureName);
         }
 
         $song->title = $title;
@@ -156,6 +176,50 @@ class SongController extends Controller
         $song->save();
 
         return response()->json(["code" => 200000, "message" => "New song has been created!"]);
+    }
+
+    /**
+     * Update the specified song. Only allow updating title, artist, album and picture
+     */
+    public function updateSong(Request $request, $id)
+    {
+        $title = $request->title;
+        $artist = $request->artist;
+        $pictureBase64 = $request->pictureBase64;
+        $album = $request->album;
+        $pictureName = $artist . " - " . $title . '_' . time(). ".jpg";
+        $removePicture = $request->removePicture;
+
+        $song = Song::find($request->id);
+
+        if (!$song) {
+            return response()->json(["code" => 404003, "message" => "Error: Song not found!"], 404);
+        }
+
+        // Nếu ko truyền param pictureBase64 thì sẽ giữ nguyên picture của song (giữ chứ ko xóa nhé!)
+        // Nếu muốn xóa picture thì phải truyền param removePicture = 1
+        if (isset($pictureBase64)) {
+            if($song->image_name) {
+                $this->removePicture($song->image_name);
+            }
+            $song->image_name = $pictureName;
+            $song->image_url = "/api/song/picture?file=" . $pictureName;
+            $this->savePicture($pictureBase64, $pictureName);
+        }
+        if ($removePicture == 1) {
+            if($song->image_name) {
+                $this->removePicture($song->image_name);
+            }
+            $song->image_name = null;
+            $song->image_url = null;
+        }
+
+        $song->title = $title;
+        $song->artist = $artist;
+        $song->album = $album;
+        $song->save();
+
+        return response()->json(["code" => 200000, "message" => "Song has been updated!"]);
     }
 
     public function deleteSong($id)
