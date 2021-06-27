@@ -41,7 +41,6 @@ $router->group(['prefix' => 'api/song'], function () use ($router) {
     $router->get('/picture', 'Liliana\SongController@getPictureByFile');
     $router->put('/listens', 'Liliana\SongController@updateListens');
     $router->get('/type/all', 'Liliana\SongController@getAllTypes');
-    $router->get('/upload', 'Liliana\SongController@uploadSong');
 });
 
 

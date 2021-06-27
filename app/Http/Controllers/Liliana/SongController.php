@@ -270,8 +270,4 @@ class SongController extends Controller
         $types = DB::select("SELECT DISTINCT type FROM song");
         return response()->json($types);
     }
-
-    public function uploadSong(Request $request)
-    {
-    }
 }
