@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Liliana;
 
+use App\Http\Common\Result;
 use App\Http\Controllers\Controller;
 use App\Models\Song;
 use Illuminate\Http\Request;
@@ -42,7 +43,9 @@ class SongController extends Controller
     public function getSongById($id)
     {
         $song = Song::find($id);
-        return response()->json($song);
+        $result = new Result();
+        $result->successRes($song);
+        return $result;  // return (new Result())->successRes($song);
     }
 
     private function getFilePathByFileName($fileName)
@@ -84,14 +87,17 @@ class SongController extends Controller
 
     public function getPictureByFile(Request $request)
     {
+        $result = new Result();
         if (!$request->file) {
-            return response()->json(["code" => 404000, "message" => "Error: file cannot be empty!"], 404);
+            $result->res(404000, "Error: file cannot be empty!");
+            return response()->json($result, $result->getStatus());
         }
 
         $pictureFolder = env('LL_PICTURE_FOLDER', '');
         $filePath = $pictureFolder . DIRECTORY_SEPARATOR . $request->file;
         if (!file_exists($filePath)) {
-            return response()->json(["code" => 404002, "message" => "Picture doesn't exist!"], 404);
+            $result->res(404002, "Picture doesn't exist!");
+            return response()->json($result, $result->getStatus());
         } else {
             $type = 'image/png';
             $headers = ['Content-Type' => $type];
@@ -108,10 +114,11 @@ class SongController extends Controller
         fclose($fp);
     }
 
-    private function removePicture($pictureName) {
+    private function removePicture($pictureName)
+    {
         $pictureFolder = env('LL_PICTURE_FOLDER', '');
         $picturePath = $pictureFolder . DIRECTORY_SEPARATOR . $pictureName;
-        if(!unlink($picturePath)) {
+        if (!unlink($picturePath)) {
             return true;
         }
         return false;
@@ -131,6 +138,7 @@ class SongController extends Controller
     public function createSong(Request $request)
     {
         DB::enableQueryLog();
+        $result = new Result();
         $title = $request->title;
         $artist = $request->artist;
         $pictureBase64 = $request->pictureBase64;
@@ -150,11 +158,13 @@ class SongController extends Controller
             $song = new Song();
             $song->listens = 0;
         } else if ($song->is_deleted == 0) {
-            return response()->json(["code" => 400004, "message" => "Error: This song has already existed!"], 400);
+            $result->res(400004, "Error: This song has already existed!");
+            return response()->json($result, $result->getStatus());
         } else {
-            if($song->image_name) {
-                if(!$this->removePicture(($song->image_name))) {
-                    return response()->json(["code" => 400005, "message" => "Error: Cannot delete old picture!"], 400);
+            if ($song->image_name) {
+                if (!$this->removePicture(($song->image_name))) {
+                    $result->res(400005, "Error: Cannot delete old picture!");
+                    return response()->json($result, $result->getStatus());
                 }
             }
         }
@@ -175,7 +185,8 @@ class SongController extends Controller
         $song->is_deleted = 0;
         $song->save();
 
-        return response()->json(["code" => 200000, "message" => "New song has been created!"]);
+        $result->res(200000, "New song has been created!");
+        return response()->json($result);
     }
 
     /**
@@ -183,23 +194,25 @@ class SongController extends Controller
      */
     public function updateSong(Request $request, $id)
     {
+        $result = new Result();
         $title = $request->title;
         $artist = $request->artist;
         $pictureBase64 = $request->pictureBase64;
         $album = $request->album;
-        $pictureName = $artist . " - " . $title . '_' . time(). ".jpg";
+        $pictureName = $artist . " - " . $title . '_' . time() . ".jpg";
         $removePicture = $request->removePicture;
 
         $song = Song::find($request->id);
 
         if (!$song) {
-            return response()->json(["code" => 404003, "message" => "Error: Song not found!"], 404);
+            $result->res(404003, "Error: Song not found!");
+            return response()->json($result, $result->getStatus());
         }
 
         // Nếu ko truyền param pictureBase64 thì sẽ giữ nguyên picture của song (giữ chứ ko xóa nhé!)
         // Nếu muốn xóa picture thì phải truyền param removePicture = 1
         if (isset($pictureBase64)) {
-            if($song->image_name) {
+            if ($song->image_name) {
                 $this->removePicture($song->image_name);
             }
             $song->image_name = $pictureName;
@@ -207,7 +220,7 @@ class SongController extends Controller
             $this->savePicture($pictureBase64, $pictureName);
         }
         if ($removePicture == 1) {
-            if($song->image_name) {
+            if ($song->image_name) {
                 $this->removePicture($song->image_name);
             }
             $song->image_name = null;
@@ -219,49 +232,57 @@ class SongController extends Controller
         $song->album = $album;
         $song->save();
 
-        return response()->json(["code" => 200000, "message" => "Song has been updated!"]);
+        $result->res(200000, "Song has been updated!");
+        return response()->json($result);
     }
 
     public function deleteSong($id)
     {
+        $result = new Result();
+
         // Check if exist song
         $song = Song::find($id);
         if (!$song) {
-            return response()->json(["code" => 404003, "message" => "Error: Song not found!"], 404);
+            $result->res(404003, "Error: Song not found!");
+            return response()->json($result, $result->getStatus());
         }
 
         // Delete file associated with this song
         $filePath = $this->getFilePathByFileName($song->file_name);
         if (!unlink($filePath)) {
-            return response()->json(["code" => 400000, "message" => "Error: Cannot delete a file!"], 400);
+            $result->res(400000, "Error: Cannot delete a file!");
+            return response()->json($result, $result->getStatus());
         }
 
         // Delete this song in database by updating is_deleted column
         DB::table('song')
             ->where('id', $id)
             ->update(['is_deleted' => 1]);
-        return response()->json(["code" => 200000, "message" => "Song has been deleted!"]);
+        $result->res(200000, "Song has been deleted!");
+        return response()->json($result);
     }
 
     public function updateListens(Request $request)
     {
+        $result = new Result();
         if (!$request->file) {
-            return response()->json(["code" => 404000, "message" => "Error: file cannot be empty!"], 404);
+            $result->res(404000, "Error: file cannot be empty!");
+            return response()->json($result, $result->getStatus());
         }
 
         $songs = DB::select("SELECT * FROM song WHERE file_name = ?", [$request->file]);
 
         if (!$songs || sizeof($songs) == 0) {
-            return response()->json(["code" => 404001, "message" => "Song doesn't exist!"], 404);
+            $result->res(404001, "Song doesn't exist!");
+            return response()->json($result, $result->getStatus());
         } else {
             $newListens = $songs[0]->listens + 1;
             $id = $songs[0]->id;
             DB::update("UPDATE song SET listens = ? WHERE id = ?", [$newListens, $id]);
-            return response()->json([
-                "code" => 200000,
-                "message" => "Updated listens: " . $songs[0]->title .
-                    " (" . $songs[0]->artist . "): " . $newListens
-            ]);
+
+            $result->res(200000, "Updated listens: " . $songs[0]->title .
+                " (" . $songs[0]->artist . "): " . $newListens);
+            return response()->json($result);
         }
     }
 
