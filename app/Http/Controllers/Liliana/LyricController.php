@@ -46,23 +46,33 @@ class LyricController extends Controller
         $tempFileName = 'temp_' . time();
         $tempFilePath = $lyricFolder . DIRECTORY_SEPARATOR . $tempFileName;
         $tempFile = fopen($tempFilePath, 'w');
+        $content = "";
+        $isContainsOffset = false;
 
-        // read every line from original file, then write them to temp file.
-        // If found a line that contains offset, update it
+        // Travel to every line of file, if found a line that contains offset, update it
+        // If travel to the end and found no line contains offset, create offset line
         if ($originalFile = fopen($originalFilePath, "r")) {
-            while(!feof($originalFile)) {
+            while (!feof($originalFile)) {
                 $line = fgets($originalFile);
-                if(str_contains($line, '[offset:')) {
+                if (str_contains($line, '[offset:')) {
                     $line = "[offset:" . $request->offset . "]" . PHP_EOL;
+                    $isContainsOffset = true;
                 }
-                fwrite($tempFile, $line);
+                $content .= $line;
             }
+
+            if (!$isContainsOffset) {
+                // There is no line that contains offset, create offset line
+                $content = "[offset:" . $request->offset . "]" . PHP_EOL . $content;
+            }
+
+            fwrite($tempFile, $content);
             fclose($originalFile);
             fclose($tempFile);
         }
 
         // delete original file
-        if(!unlink($originalFilePath)) {
+        if (!unlink($originalFilePath)) {
             return response()->json(["code" => 400000, "message" => "Error: Cannot delete a file!"], 400);
         }
 
