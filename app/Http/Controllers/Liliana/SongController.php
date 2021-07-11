@@ -21,9 +21,15 @@ class SongController extends Controller
 
         $sortOrder = $request->sortOrder ? $request->sortOrder : 'DESC';
 
-        $songs = Song::where('is_deleted', '0')
-            ->orderBy($sortBy, $sortOrder)
-            ->paginate($size);
+        $searchText = $request->searchText;
+
+        $songs = Song::where('is_deleted', '0');
+        if (isset($searchText)) {
+            $songs = $songs->where('title', 'like', '%' . $searchText . '%')
+                ->orWhere('artist', 'like', '%' . $searchText . '%')
+                ->orWhere('album', 'like', '%' . $searchText . '%');
+        }
+        $songs = $songs->orderBy($sortBy, $sortOrder)->paginate($size);
         return $songs;
     }
 
@@ -131,13 +137,22 @@ class SongController extends Controller
     }
 
     /**
-     * Create song. Note: nếu song đã có trong database nhưng tạm thời đang bị xóa: khôi phục lại,
+     * Create song. Note: nếu song đã có trong database nhưng tạm thời đang bị xóa
+     * (is_deleted = 1), thì khôi phục lại (set is_deleted = 0),
      * đồng thời xóa picture cũ đi và tạo picture mới (làm như vậy để đổi tên picture,
      * tránh bị cache phía browser)
      */
     public function createSong(Request $request)
     {
         DB::enableQueryLog();
+
+        $this->validate($request, [
+            'title' => 'required',
+            'artist' => 'required'
+        ]);
+
+        return "OK";
+
         $result = new Result();
         $title = $request->title;
         $artist = $request->artist;
