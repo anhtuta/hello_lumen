@@ -26,6 +26,12 @@ $router->get('user2[/{name}]', function ($name = null) {
 $router->post('user', 'UserController@createUser');
 $router->put('user/{id}', 'UserController@updateUser');
 
+$router->group(['prefix' => 'auth'], function () use ($router) {
+    $router->post('/register', 'AuthController@register');
+    $router->post('/login', 'AuthController@login');
+    $router->get('/me', 'AuthController@me');
+});
+
 /***********
  * Song routes
  ***********/
