@@ -36,13 +36,13 @@ $router->group(['prefix' => 'auth'], function () use ($router) {
  * Song routes
  ***********/
 $router->group(['prefix' => 'api/song'], function () use ($router) {
-    $router->get('', 'Liliana\SongController@getSongs');  // with pagination
-    $router->post('', 'Liliana\SongController@createSong');
+    $router->get('', 'Admin\AdminSongController@getSongs');  // with pagination
+    $router->post('', 'Admin\AdminSongController@createSong');
     $router->get('/all', 'Liliana\SongController@getAllSongs');
     $router->get('/file', 'Liliana\SongController@getSongByFile');
     $router->get('/id/{id}', 'Liliana\SongController@getSongById');
-    $router->post('/id/{id}', 'Liliana\SongController@updateSong');
-    $router->delete('/id/{id}', 'Liliana\SongController@deleteSong');
+    $router->post('/id/{id}', 'Admin\AdminSongController@updateSong');
+    $router->delete('/id/{id}', 'Admin\AdminSongController@deleteSong');
     $router->get('/album', 'Liliana\SongController@getPictureByFile');
     $router->get('/picture', 'Liliana\SongController@getPictureByFile');
     $router->put('/listens', 'Liliana\SongController@updateListens');
