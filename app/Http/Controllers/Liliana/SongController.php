@@ -108,14 +108,66 @@ class SongController extends Controller
         $count = 0;
 
         for ($i = 0; $i < $totalSong; $i++) {
-            if(isset($songs[$i]->path)) continue;
+            if (isset($songs[$i]->path)) continue;
             $id = $songs[$i]->id;
             $count++;
             $path = $songs[$i]->title . ' ' . $songs[$i]->artist;
             $path = str_replace([' '], '-', trim($path));
-            $path = str_replace(['?', ','], '', $path) . '_' .$id;
+            $path = str_replace(['?', ','], '', $path) . '_' . $id;
             DB::update("UPDATE song SET path = ? WHERE id = ?", [$path, $id]);
         }
+
+        return (new Result())->successRes('Updated! Total rows: ' . $count);
+    }
+
+    public function updateLyric()
+    {
+        $songs = Song::all();
+        $totalSong = count($songs);
+        $count = 0;
+
+        for ($i = 0; $i < $totalSong; $i++) {
+            if (isset($songs[$i]->lyric)) continue;
+            $id = $songs[$i]->id;
+            $lyricFolder = env('LL_LYRIC_FOLDER', '');
+
+            // lyric = "artist - title.trc"
+            $lyricFileName = $songs[$i]->artist . ' - ' . $songs[$i]->title . '.trc';
+            $filePath = $lyricFolder . DIRECTORY_SEPARATOR . $lyricFileName;
+            if (file_exists($filePath)) {
+                DB::update("UPDATE song SET lyric = ? WHERE id = ?", [$lyricFileName, $id]);
+                $count++;
+                continue;
+            }
+
+            // lyric = "file_name.trc"
+            $lyricFileName = $songs[$i]->file_name . '.trc';
+            $filePath = $lyricFolder . DIRECTORY_SEPARATOR . $lyricFileName;
+            if (file_exists($filePath)) {
+                DB::update("UPDATE song SET lyric = ? WHERE id = ?", [$lyricFileName, $id]);
+                $count++;
+                continue;
+            }
+
+            // lyric = "artist - title.lrc"
+            $lyricFileName = $songs[$i]->artist . ' - ' . $songs[$i]->title . '.lrc';
+            $filePath = $lyricFolder . DIRECTORY_SEPARATOR . $lyricFileName;
+            if (file_exists($filePath)) {
+                DB::update("UPDATE song SET lyric = ? WHERE id = ?", [$lyricFileName, $id]);
+                $count++;
+                continue;
+            }
+
+            // lyric = "file_name.lrc"
+            $lyricFileName = $songs[$i]->file_name . '.lrc';
+            $filePath = $lyricFolder . DIRECTORY_SEPARATOR . $lyricFileName;
+            if (file_exists($filePath)) {
+                DB::update("UPDATE song SET lyric = ? WHERE id = ?", [$lyricFileName, $id]);
+                $count++;
+                continue;
+            }
+        }
+
         return (new Result())->successRes('Updated! Total rows: ' . $count);
     }
 }
