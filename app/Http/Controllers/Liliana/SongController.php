@@ -33,7 +33,6 @@ class SongController extends Controller
         return $result;  // return (new Result())->successRes($song);
     }
 
-
     public function getSongByFile(Request $request)
     {
         if (!$request->file) {
@@ -100,5 +99,23 @@ class SongController extends Controller
     {
         $types = DB::select("SELECT DISTINCT type FROM song");
         return response()->json($types);
+    }
+
+    public function updatePath()
+    {
+        $songs = Song::all();
+        $totalSong = count($songs);
+        $count = 0;
+
+        for ($i = 0; $i < $totalSong; $i++) {
+            if(isset($songs[$i]->path)) continue;
+            $id = $songs[$i]->id;
+            $count++;
+            $path = $songs[$i]->title . ' ' . $songs[$i]->artist;
+            $path = str_replace([' '], '-', trim($path));
+            $path = str_replace(['?', ','], '', $path) . '_' .$id;
+            DB::update("UPDATE song SET path = ? WHERE id = ?", [$path, $id]);
+        }
+        return (new Result())->successRes('Updated! Total rows: ' . $count);
     }
 }
