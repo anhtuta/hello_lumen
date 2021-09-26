@@ -34,6 +34,7 @@ $router->group(['prefix' => 'auth'], function () use ($router) {
 
 /***********
  * Song routes
+ * Note: In Lumen, PUT method cannot read FormData, so I use POST to update
  ***********/
 $router->group(['prefix' => 'api/song'], function () use ($router) {
     $router->get('', 'Admin\AdminSongController@getSongs');  // with pagination
@@ -51,11 +52,19 @@ $router->group(['prefix' => 'api/song'], function () use ($router) {
     $router->get('/update-lyric', 'Liliana\SongController@updateLyric');
 });
 
-
 /***********
  * Lyric routes
  ***********/
 $router->group(['prefix' => 'api/lyric'], function () use ($router) {
     $router->get('', 'Liliana\LyricController@getLyricByFileName');
     $router->get('/update/offset', 'Liliana\LyricController@updateOffset');
+});
+
+/***********
+ * Landing page routes
+ ***********/
+$router->group(['prefix' => 'api/landing/order'], function () use ($router) {
+    $router->get('', 'Ddyy\LandingPageOrderController@getOrders');  // with pagination
+    $router->post('', 'Ddyy\LandingPageOrderController@createOrder');
+    $router->post('/update-status', 'Ddyy\LandingPageOrderController@updateStatus');
 });

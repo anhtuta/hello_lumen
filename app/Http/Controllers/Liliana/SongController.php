@@ -110,11 +110,11 @@ class SongController extends Controller
         for ($i = 0; $i < $totalSong; $i++) {
             if (isset($songs[$i]->path)) continue;
             $id = $songs[$i]->id;
-            $count++;
             $path = $songs[$i]->title . ' ' . $songs[$i]->artist;
             $path = str_replace([' '], '-', trim($path));
             $path = str_replace(['?', ','], '', $path) . '_' . $id;
             DB::update("UPDATE song SET path = ? WHERE id = ?", [$path, $id]);
+            $count++;
         }
 
         return (new Result())->successRes('Updated! Total rows: ' . $count);
