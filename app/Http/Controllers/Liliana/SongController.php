@@ -74,12 +74,18 @@ class SongController extends Controller
     public function updateListens(Request $request)
     {
         $result = new Result();
-        if (!$request->file) {
-            $result->res(404000, "Error: file cannot be empty!");
+        if (!isset($request->file) && !isset($request->path)) {
+            $result->res(404000, "Error: file or path is required!");
             return response()->json($result, $result->getStatus());
         }
 
-        $songs = DB::select("SELECT * FROM song WHERE file_name = ?", [$request->file]);
+        // Code cũ thì find by file name, code mới thì find by path.
+        // Thôi thì cứ giữ cả 2
+        if (isset($request->path)) {
+            $songs = DB::select("SELECT * FROM song WHERE path = ?", [$request->path]);
+        } else {
+            $songs = DB::select("SELECT * FROM song WHERE file_name = ?", [$request->file]);
+        }
 
         if (!$songs || sizeof($songs) == 0) {
             $result->res(404001, "Song doesn't exist!");
