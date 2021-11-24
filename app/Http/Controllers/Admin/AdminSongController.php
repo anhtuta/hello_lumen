@@ -53,8 +53,6 @@ class AdminSongController extends Controller
             'artist' => 'required'
         ]);
 
-        return "OK";
-
         $result = new Result();
         $title = $request->title;
         $artist = $request->artist;
