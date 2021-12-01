@@ -176,4 +176,27 @@ class AdminSongController extends Controller
         $result->res(200000, "Song has been deleted!");
         return response()->json($result);
     }
+
+    // This method is for running manually, not for FE to call.
+    // We will update directly on FE side (using Javascript to create path).
+    // Only use this method for old data when in db, path column is NULL
+    public function updatePath()
+    {
+        $songs = Song::all();
+        $totalSong = count($songs);
+        $count = 0;
+
+        for ($i = 0; $i < $totalSong; $i++) {
+            if (isset($songs[$i]->path)) continue;
+            $id = $songs[$i]->id;
+            $path = $songs[$i]->title . ' ' . $songs[$i]->artist;
+            $path = str_replace([' '], '-', trim($path));
+            $path = str_replace(['?', ','], '', $path) . '_' . $id;
+            DB::update("UPDATE song SET path = ? WHERE id = ?", [$path, $id]);
+            $count++;
+        }
+
+        return (new Result())->successRes('Updated! Total rows: ' . $count);
+    }
+
 }
