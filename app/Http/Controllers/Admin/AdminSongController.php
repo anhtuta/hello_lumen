@@ -58,6 +58,7 @@ class AdminSongController extends Controller
         $artist = $request->artist;
         $pictureBase64 = $request->pictureBase64;
         $album = $request->album;
+        $path = $request->path;
         $type = $request->type;
         $file = $request->file('file'); // or using $request->file; is OK
         $fileName = $artist . " - " . $title . ".mp3";
@@ -95,6 +96,7 @@ class AdminSongController extends Controller
         $song->title = $title;
         $song->artist = $artist;
         $song->album = $album;
+        $song->path = $path;
         $song->type = $type;
         $song->file_name = $fileName;
         $song->is_deleted = 0;
@@ -114,6 +116,7 @@ class AdminSongController extends Controller
         $artist = $request->artist;
         $pictureBase64 = $request->pictureBase64;
         $album = $request->album;
+        $path = $request->path;
         $pictureName = $artist . " - " . $title . '_' . time() . ".jpg";
         $removePicture = $request->removePicture;
 
@@ -145,6 +148,7 @@ class AdminSongController extends Controller
         $song->title = $title;
         $song->artist = $artist;
         $song->album = $album;
+        $song->path = $path;
         $song->save();
 
         $result->res(200000, "Song has been updated!");
@@ -191,7 +195,7 @@ class AdminSongController extends Controller
             $id = $songs[$i]->id;
             $path = $songs[$i]->title . ' ' . $songs[$i]->artist;
             $path = str_replace([' '], '-', trim($path));
-            $path = str_replace(['?', ','], '', $path) . '_' . $id;
+            $path = str_replace(['?', ' '], '', $path);
             DB::update("UPDATE song SET path = ? WHERE id = ?", [$path, $id]);
             $count++;
         }
