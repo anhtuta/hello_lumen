@@ -40,7 +40,7 @@ $router->group(['prefix' => 'api/song'], function () use ($router) {
     $router->get('', 'Admin\AdminSongController@getSongs');  // with pagination
     $router->post('', 'Admin\AdminSongController@createSong');
     $router->get('/all', 'Liliana\SongController@getAllSongs');
-    $router->get('/file', 'Liliana\SongController@getSongByFile');
+    $router->get('/file', 'Liliana\SongController@getMp3File');
     $router->get('/id/{id}', 'Liliana\SongController@getSongById');
     $router->post('/id/{id}', 'Admin\AdminSongController@updateSong');
     $router->delete('/id/{id}', 'Admin\AdminSongController@deleteSong');
@@ -57,6 +57,7 @@ $router->group(['prefix' => 'api/song'], function () use ($router) {
  ***********/
 $router->group(['prefix' => 'api/lyric'], function () use ($router) {
     $router->get('', 'Liliana\LyricController@getLyricByFileName');
+    $router->get('/download', 'Liliana\LyricController@downloadLyricFile');
     $router->get('/update/offset', 'Liliana\LyricController@updateOffset');
 });
 

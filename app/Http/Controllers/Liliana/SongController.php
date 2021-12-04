@@ -33,7 +33,7 @@ class SongController extends Controller
         return $result;  // return (new Result())->successRes($song);
     }
 
-    public function getSongByFile(Request $request)
+    public function getMp3File(Request $request)
     {
         if (!$request->file) {
             return response()->json(["code" => 404000, "message" => "Error: file cannot be empty!"], 404);

@@ -26,6 +26,21 @@ class LyricController extends Controller
         }
     }
 
+    public function downloadLyricFile(Request $request)
+    {
+        if (!$request->file) {
+            return response()->json(["code" => 404000, "message" => "Error: file cannot be empty!"], 404);
+        }
+
+        $lyricFolder = env('LL_LYRIC_FOLDER', '');
+        $filePath = $lyricFolder . DIRECTORY_SEPARATOR . $request->file;
+        if (!file_exists($filePath)) {
+            return "Lyric doesn't exist!";
+        } else {
+            return response()->download($filePath);
+        }
+    }
+
     // Update offset:
     // Đầu tiên tạo 1 file tạm, sau đó đọc từng dòng của file gốc cần update offset
     // ghi sang file tạm đó, và check nếu dòng nào có offset thì update giá trị đó.
