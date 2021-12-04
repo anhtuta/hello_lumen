@@ -44,7 +44,7 @@ class AuthController extends Controller
 
         $user->save();
 
-        $result->res(201000, "User has been created!", $user);
+        $result->res("User has been created!", $user);
         return response()->json($result, 201);
     }
 
@@ -65,7 +65,7 @@ class AuthController extends Controller
         $credentials = $request->only(['username', 'password']);
 
         if (!$token = Auth::attempt($credentials)) {
-            $result->res(401000, "Username or password is incorrect!");
+            $result->res("Username or password is incorrect!");
             return response()->json($result, 401);
         }
 
@@ -81,10 +81,10 @@ class AuthController extends Controller
     {
         $result = new Result();
         if(Auth::check()) {
-            $result->res(200000, "SUCCESS!", Auth::guard()->user());
+            $result->res("SUCCESS!", Auth::guard()->user());
             return response()->json($result);
         } else {
-            $result->res(401000, "Invalid token");
+            $result->res("Invalid token");
             return response()->json($result, 401);
         }
     }
@@ -102,7 +102,7 @@ class AuthController extends Controller
     protected function respondWithToken($token)
     {
         $result = new Result();
-        $result->res(200000, "SUCCESS!", [
+        $result->res("SUCCESS!", [
             'token' => $token,
             'token_type' => 'bearer',
             'expires_in' => Auth::factory()->getTTL() * 60

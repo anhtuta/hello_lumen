@@ -45,7 +45,7 @@ class LandingPageOrderController extends Controller
         $order->save();
 
         $result = new Result();
-        $result->res(201000, "New order '" . $request->product . "' has been created!");
+        $result->res("New order '" . $request->product . "' has been created!");
         return response()->json($result, 201);
     }
 
@@ -59,7 +59,7 @@ class LandingPageOrderController extends Controller
 
         Log::info(DB::getQueryLog()); // Show results of log
         $result = new Result();
-        $result->res(200000, "Updated status: '" . $status . "', rows affected: " . $affected);
+        $result->res("Updated status: '" . $status . "', rows affected: " . $affected);
         return response()->json($result);
     }
 }

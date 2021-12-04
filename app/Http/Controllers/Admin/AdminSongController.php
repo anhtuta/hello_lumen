@@ -75,13 +75,13 @@ class AdminSongController extends Controller
             $song = new Song();
             $song->listens = 0;
         } else if ($song->is_deleted == 0) {
-            $result->res(400004, "Error: This song has already existed!");
-            return response()->json($result, $result->getStatus());
+            $result->res("Error: This song has already existed!");
+            return response()->json($result, 400);
         } else {
             if ($song->image_name) {
                 if (!SongService::removePicture(($song->image_name))) {
-                    $result->res(400005, "Error: Cannot delete old picture!");
-                    return response()->json($result, $result->getStatus());
+                    $result->res("Error: Cannot delete old picture!");
+                    return response()->json($result, 400);
                 }
             }
         }
@@ -104,7 +104,7 @@ class AdminSongController extends Controller
         $song->is_deleted = 0;
         $song->save();
 
-        $result->res(200000, "New song has been created!");
+        $result->res("New song has been created!");
         return response()->json($result);
     }
 
@@ -126,8 +126,8 @@ class AdminSongController extends Controller
         $song = Song::find($request->id);
 
         if (!$song) {
-            $result->res(404003, "Error: Song not found!");
-            return response()->json($result, $result->getStatus());
+            $result->res("Error: Song not found!");
+            return response()->json($result, 404);
         }
 
         // Nếu ko truyền param pictureBase64 thì sẽ giữ nguyên picture của song (giữ chứ ko xóa nhé!)
@@ -155,7 +155,7 @@ class AdminSongController extends Controller
         $song->lyric = $lyric;
         $song->save();
 
-        $result->res(200000, "Song has been updated!");
+        $result->res("Song has been updated!");
         return response()->json($result);
     }
 
@@ -166,22 +166,22 @@ class AdminSongController extends Controller
         // Check if exist song
         $song = Song::find($id);
         if (!$song) {
-            $result->res(404003, "Error: Song not found!");
-            return response()->json($result, $result->getStatus());
+            $result->res("Error: Song not found!");
+            return response()->json($result, 404);
         }
 
         // Delete file associated with this song
         $filePath = SongService::getFilePathByFileName($song->file_name);
         if (!unlink($filePath)) {
-            $result->res(400000, "Error: Cannot delete a file!");
-            return response()->json($result, $result->getStatus());
+            $result->res("Error: Cannot delete a file!");
+            return response()->json($result, 404);
         }
 
         // Delete this song in database by updating is_deleted column
         DB::table('song')
             ->where('id', $id)
             ->update(['is_deleted' => 1]);
-        $result->res(200000, "Song has been deleted!");
+        $result->res("Song has been deleted!");
         return response()->json($result);
     }
 

@@ -54,15 +54,15 @@ class SongController extends Controller
     {
         $result = new Result();
         if (!$request->file) {
-            $result->res(404000, "Error: \"file\" param cannot be empty!");
-            return response()->json($result, $result->getStatus());
+            $result->res("Error: \"file\" param cannot be empty!");
+            return response()->json($result, 404);
         }
 
         $pictureFolder = env('LL_PICTURE_FOLDER', '');
         $filePath = $pictureFolder . DIRECTORY_SEPARATOR . $request->file;
         if (!file_exists($filePath)) {
-            $result->res(404002, "Picture doesn't exist!");
-            return response()->json($result, $result->getStatus());
+            $result->res("Picture doesn't exist!");
+            return response()->json($result, 404);
         } else {
             $type = 'image/png';
             $headers = ['Content-Type' => $type];
@@ -75,8 +75,8 @@ class SongController extends Controller
     {
         $result = new Result();
         if (!isset($request->file) && !isset($request->path)) {
-            $result->res(404000, "Error: file or path is required!");
-            return response()->json($result, $result->getStatus());
+            $result->res("Error: file or path is required!");
+            return response()->json($result, 404);
         }
 
         // Code cũ thì find by file name, code mới thì find by path.
@@ -88,14 +88,14 @@ class SongController extends Controller
         }
 
         if (!$songs || sizeof($songs) == 0) {
-            $result->res(404001, "Song doesn't exist!");
-            return response()->json($result, $result->getStatus());
+            $result->res("Song doesn't exist!");
+            return response()->json($result, 404);
         } else {
             $newListens = $songs[0]->listens + 1;
             $id = $songs[0]->id;
             DB::update("UPDATE song SET listens = ? WHERE id = ?", [$newListens, $id]);
 
-            $result->res(200000, "Updated listens: " . $songs[0]->title .
+            $result->res("Updated listens: " . $songs[0]->title .
                 " (" . $songs[0]->artist . "): " . $newListens);
             return response()->json($result);
         }
