@@ -36,7 +36,7 @@ class SongController extends Controller
     public function getMp3File(Request $request)
     {
         if (!$request->file) {
-            return response()->json(["code" => 404000, "message" => "Error: file cannot be empty!"], 404);
+            return response()->json(["code" => 404000, "message" => "Error: \"file\" param cannot be empty!"], 404);
         }
 
         $path = SongService::getFilePathByFileName($request->file);
@@ -54,7 +54,7 @@ class SongController extends Controller
     {
         $result = new Result();
         if (!$request->file) {
-            $result->res(404000, "Error: file cannot be empty!");
+            $result->res(404000, "Error: \"file\" param cannot be empty!");
             return response()->json($result, $result->getStatus());
         }
 

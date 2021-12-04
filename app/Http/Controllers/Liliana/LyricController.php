@@ -11,7 +11,7 @@ class LyricController extends Controller
     public function getLyricByFileName(Request $request)
     {
         if (!$request->file) {
-            return response()->json(["code" => 404000, "message" => "Error: file cannot be empty!"], 404);
+            return response()->json(["code" => 404000, "message" => "Error: \"file\" param cannot be empty!"], 404);
         }
 
         $lyricFolder = env('LL_LYRIC_FOLDER', '');
@@ -29,7 +29,7 @@ class LyricController extends Controller
     public function downloadLyricFile(Request $request)
     {
         if (!$request->file) {
-            return response()->json(["code" => 404000, "message" => "Error: file cannot be empty!"], 404);
+            return response()->json(["code" => 404000, "message" => "Error: \"file\" param cannot be empty!"], 404);
         }
 
         $lyricFolder = env('LL_LYRIC_FOLDER', '');
@@ -48,7 +48,7 @@ class LyricController extends Controller
     public function updateOffset(Request $request)
     {
         if (!$request->file) {
-            return response()->json(["code" => 404000, "message" => "Error: file cannot be empty!"], 404);
+            return response()->json(["code" => 404000, "message" => "Error: \"file\" param cannot be empty!"], 404);
         }
         if (!$request->offset || $request->offset == 0) {
             return;

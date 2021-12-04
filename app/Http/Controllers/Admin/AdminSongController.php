@@ -60,6 +60,7 @@ class AdminSongController extends Controller
         $album = $request->album;
         $path = $request->path;
         $type = $request->type;
+        $lyric = $request->lyric;
         $file = $request->file('file'); // or using $request->file; is OK
         $fileName = $artist . " - " . $title . ".mp3";
         $pictureName = $artist . " - " . $title  . '_' . time() . ".jpg";  // add time to name to prevent cache in browser
@@ -98,6 +99,7 @@ class AdminSongController extends Controller
         $song->album = $album;
         $song->path = $path;
         $song->type = $type;
+        $song->lyric = $lyric;
         $song->file_name = $fileName;
         $song->is_deleted = 0;
         $song->save();
@@ -117,6 +119,7 @@ class AdminSongController extends Controller
         $pictureBase64 = $request->pictureBase64;
         $album = $request->album;
         $path = $request->path;
+        $lyric = $request->lyric;
         $pictureName = $artist . " - " . $title . '_' . time() . ".jpg";
         $removePicture = $request->removePicture;
 
@@ -149,6 +152,7 @@ class AdminSongController extends Controller
         $song->artist = $artist;
         $song->album = $album;
         $song->path = $path;
+        $song->lyric = $lyric;
         $song->save();
 
         $result->res(200000, "Song has been updated!");
