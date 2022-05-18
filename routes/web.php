@@ -53,6 +53,14 @@ $router->group(['prefix' => 'api/song'], function () use ($router) {
 });
 
 /***********
+ * Zing MP3 routes
+ ***********/
+$router->group(['prefix' => 'api/zing/mp3'], function () use ($router) {
+    $router->get('/search', 'Admin\ZingMp3Controller@search');
+});
+
+
+/***********
  * Lyric routes
  ***********/
 $router->group(['prefix' => 'api/lyric'], function () use ($router) {

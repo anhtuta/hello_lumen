@@ -14,7 +14,7 @@ Sau khi pull code về thì:
 - Run project: ```php -S localhost:8888 -t public```
 
 ## Chú ý
-- Khi copy file lên product (hosting), thì phải sửa file .env (bằng cách copy nội dung của file .env.prd vào file .env là được). Còn nữa, copy file lên product ko cần copy thư mục vendor đâu, nó là thư viện KHÔNG được sửa!
+- Khi copy file lên product (hosting), thì phải sửa file .env (bằng cách copy nội dung của file .env.prd vào file .env là được). Còn nữa, copy file lên product chỉ cần copy thư mục `vendor` ở lần đầu tiên thôi, từ lần sau nếu ko update dependency gì (file `composer.json` ko thay đổi) thì ko cần copy lại thư mục này nữa
 - File .env.prd ko dùng, nó chỉ lưu config ở product thôi
 - Trên cpanel cần sửa 2 tham số sau, nếu ko sẽ KHÔNG upload được file: upload_max_filesize và post_max_size:
 
