@@ -61,6 +61,8 @@ class AdminSongController extends Controller
         $path = $request->path;
         $type = $request->type;
         $lyric = $request->lyric;
+        $zing_id = $request->zing_id;
+        $image_url = $request->image_url;
         $file = $request->file('file'); // or using $request->file; is OK
         $fileName = $artist . " - " . $title . ".mp3";
         $pictureName = $artist . " - " . $title  . '_' . time() . ".jpg";  // add time to name to prevent cache in browser
@@ -86,7 +88,15 @@ class AdminSongController extends Controller
             }
         }
 
-        SongService::saveMp3File($file, $type, $fileName);
+        if (!isset($zing_id)) {
+            SongService::saveMp3File($file, $type, $fileName);
+            $song->file_name = $fileName;
+        } else {
+            $song->zing_id = $zing_id;
+            if (isset($image_url)) {
+                $song->image_url = $image_url;
+            }
+        }
 
         if (isset($pictureBase64)) {
             $song->image_name = $pictureName;
@@ -100,7 +110,6 @@ class AdminSongController extends Controller
         $song->path = $path;
         $song->type = $type;
         $song->lyric = $lyric;
-        $song->file_name = $fileName;
         $song->is_deleted = 0;
         $song->save();
 
@@ -120,6 +129,7 @@ class AdminSongController extends Controller
         $album = $request->album;
         $path = $request->path;
         $lyric = $request->lyric;
+        $zing_id = $request->zing_id;
         $pictureName = $artist . " - " . $title . '_' . time() . ".jpg";
         $removePicture = $request->removePicture;
 
@@ -128,6 +138,11 @@ class AdminSongController extends Controller
         if (!$song) {
             $result->res("Error: Song not found!");
             return response()->json($result, 404);
+        }
+
+        if (isset($zing_id) && (isset($pictureBase64) || $removePicture == 1)) {
+            $result->res("Error: Cannot edit picture of a Zing song!");
+            return response()->json($result, 400);
         }
 
         // Nếu ko truyền param pictureBase64 thì sẽ giữ nguyên picture của song (giữ chứ ko xóa nhé!)
@@ -206,5 +221,4 @@ class AdminSongController extends Controller
 
         return (new Result())->successRes('Updated! Total rows: ' . $count);
     }
-
 }
