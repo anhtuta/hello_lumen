@@ -56,7 +56,8 @@ $router->group(['prefix' => 'api/song'], function () use ($router) {
  * Zing MP3 routes
  ***********/
 $router->group(['prefix' => 'api/zing/mp3'], function () use ($router) {
-    $router->get('/search', 'Admin\ZingMp3Controller@search');
+    $router->get('/suggestion', 'Admin\ZingMp3Controller@suggestion');
+    $router->get('/search/song', 'Admin\ZingMp3Controller@searchSong');
 });
 
 
