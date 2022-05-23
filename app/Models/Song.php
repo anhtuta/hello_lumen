@@ -4,6 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Note: trước đây 1 số field dùng camelCase vì code theo base cũ từ Java Spring,
+ * nhưng Lumen thì lại dùng snake_case nên phải convert từ snake_case -> camelCase
+ * bằng method chẳng hạn getImageUrlAttribute().
+ * Tuy nhiên sau 1 thời gian thấy việc convert này lằng nhắng quá nên từ giờ quyết
+ * định dùng toàn bộ snake_case cho các field của model để trùng với cột trong database
+ */
 class Song extends Model
 {
     // we'll allow the web app to fill data to any column on the table

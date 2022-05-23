@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Common\Result;
 use App\Http\Controllers\Controller;
 use App\Http\Services\SongService;
+use App\Http\Services\UtilsService;
 use App\Models\Song;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -62,11 +63,13 @@ class AdminSongController extends Controller
         $type = $request->type;
         $lyric = $request->lyric;
         $zing_id = $request->zing_id;
-        $image_url = $request->image_url;
+        $image_url = $request->imageUrl;
         $file = $request->file('file'); // or using $request->file; is OK
         $fileName = $artist . " - " . $title . ".mp3";
         $pictureName = $artist . " - " . $title  . '_' . time() . ".jpg";  // add time to name to prevent cache in browser
+        $pictureName = UtilsService::cleanWithHyphen($pictureName);
 
+        // Check existed song theo tên bài + tên ca sĩ
         $song = Song::where('title', $title)
             ->where('artist', $artist)
             ->first();
@@ -80,11 +83,10 @@ class AdminSongController extends Controller
             $result->res("Error: This song has already existed!");
             return response()->json($result, 400);
         } else {
-            if ($song->image_name) {
-                if (!SongService::removePicture(($song->image_name))) {
-                    $result->res("Error: Cannot delete old picture!");
-                    return response()->json($result, 400);
-                }
+            // xóa ảnh cũ của song này đi, sau đó sẽ update bằng ảnh mới từ request
+            if ($song->image_name && !SongService::removePicture(($song->image_name))) {
+                $result->res("Error: Cannot delete old picture!");
+                return response()->json($result, 400);
             }
         }
 
