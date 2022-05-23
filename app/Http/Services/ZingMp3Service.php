@@ -109,7 +109,45 @@ class ZingMp3Service
             'query' => array_merge(
                 [
                     'q' => $text,
-                    'ctime' => $ctime,
+                    'sig' => $sig
+                ],
+                $paramsToHashArr
+            )
+        ]);
+        $contents = $response->getBody()->getContents();
+
+        $result = new Result();
+        $result->successRes(json_decode($contents));
+        return response()->json($result);
+    }
+
+    /**
+     * Hiện tại chỉ lấy được streaming 128k, còn 320k thì yêu cầu VIP,
+     * mặc dù inspect trên web Zing thì API có return 320k
+     * Có thể API mới Zing đã update nên chưa lấy được 320k, sẽ khám phá sau!
+     */
+    public function getStream($zing_id)
+    {
+        $uri = '/api/v2/song/get/streaming';
+        $ctime = time(); // ex: 1653213682
+        $paramsToHashArr = [
+            'id' => $zing_id,
+            'version' => ZingMp3Service::VERSION,
+            'ctime' => $ctime
+        ];
+        ksort($paramsToHashArr);
+        $paramsToHashStr = '';
+        foreach ($paramsToHashArr as $key => $value) {
+            $paramsToHashStr .= $key . '=' . $value;
+        }
+
+        $dataForHmac = $uri . hash('sha256', $paramsToHashStr);
+
+        $sig = hash_hmac('sha512', $dataForHmac, ZingMp3Service::SECRET_KEY);
+
+        $response = $this->guzzle->request('GET', $uri, [
+            'query' => array_merge(
+                [
                     'sig' => $sig
                 ],
                 $paramsToHashArr
