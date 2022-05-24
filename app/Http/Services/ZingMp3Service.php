@@ -134,7 +134,11 @@ class ZingMp3Service
             'version' => ZingMp3Service::VERSION,
             'ctime' => time()
         ];
-        return $this->requestZing($uri, $paramsToHashArr, ['q' => $text]);
+        $contents = $this->requestZing($uri, $paramsToHashArr, ['q' => $text]);
+
+        $result = new Result();
+        $result->successRes(json_decode($contents));
+        return response()->json($result);
     }
 
     /**
@@ -150,10 +154,26 @@ class ZingMp3Service
             'version' => ZingMp3Service::VERSION,
             'ctime' => time()
         ];
-        return $this->requestZing($uri, $paramsToHashArr);
+        $contents = $this->requestZing($uri, $paramsToHashArr);
+
+        $result = new Result();
+        $result->successRes(json_decode($contents));
+        return response()->json($result);
     }
 
     public function getLyric($zing_id)
+    {
+        $lyric = $this->getLyricUrl($zing_id);
+        $result = new Result();
+        $result->successRes($lyric);
+        return response()->json($result);
+    }
+
+    /**
+     * get lyric url from zing
+     * @return string lyric url, ex: https://static-zmp3.zmdcdn.me/abc.lrc
+     */
+    public function getLyricUrl($zing_id)
     {
         $uri = '/api/v2/lyric/get/lyric';
         $paramsToHashArr = [
@@ -161,7 +181,11 @@ class ZingMp3Service
             'version' => ZingMp3Service::VERSION,
             'ctime' => time()
         ];
-        return $this->requestZing($uri, $paramsToHashArr);
+        $contents = $this->requestZing($uri, $paramsToHashArr);
+        $json = json_decode($contents);
+        if (isset($json) && isset($json->data->file))
+            return $json->data->file;
+        else return null;
     }
 
     private function requestZing($uri = '',  $paramsToHashArr = [], $extraParamsRequest = [])
@@ -185,10 +209,6 @@ class ZingMp3Service
                 $paramsToHashArr
             )
         ]);
-        $contents = $response->getBody()->getContents();
-
-        $result = new Result();
-        $result->successRes(json_decode($contents));
-        return response()->json($result);
+        return $response->getBody()->getContents();
     }
 }

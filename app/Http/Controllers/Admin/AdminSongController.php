@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Common\Result;
 use App\Http\Controllers\Controller;
+use App\Http\Services\LyricService;
 use App\Http\Services\SongService;
 use App\Http\Services\UtilsService;
+use App\Http\Services\ZingMp3Service;
 use App\Models\Song;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +18,7 @@ class AdminSongController extends Controller
     public function __construct()
     {
         $this->middleware('auth:api');
+        $this->zingMp3Service = new ZingMp3Service();
     }
 
     public function getSongs(Request $request)
@@ -93,13 +96,20 @@ class AdminSongController extends Controller
         if (!isset($zing_id)) {
             SongService::saveMp3File($file, $type, $fileName);
             $song->file_name = $fileName;
+            $song->lyric = $lyric;
         } else {
             $song->zing_id = $zing_id;
+            $song->lyric = $this->downloadZingLyric(
+                $zing_id,
+                UtilsService::cleanWithHyphen($artist . " - " . $title) . '.lrc'
+            );
             if (isset($image_url)) {
                 $song->image_url = $image_url;
             }
         }
 
+        // Note: tuy chọn song từ Zing nhưng vẫn có thể chọn ảnh khác từ local,
+        // lúc này image_url chứa ảnh từ zing đã set ở trên sẽ bị ghi đè
         if (isset($pictureBase64)) {
             $song->image_name = $pictureName;
             $song->image_url = "/api/song/picture?file=" . $pictureName;
@@ -111,7 +121,6 @@ class AdminSongController extends Controller
         $song->album = $album;
         $song->path = $path;
         $song->type = $type;
-        $song->lyric = $lyric;
         $song->is_deleted = 0;
         $song->save();
 
@@ -222,5 +231,20 @@ class AdminSongController extends Controller
         }
 
         return (new Result())->successRes('Updated! Total rows: ' . $count);
+    }
+
+    /**
+     * Download lyric .lrc from Zing
+     * @return string filename has been saved to server. If Zing doesn't have lyric, return null
+     */
+    private function downloadZingLyric($zing_id, $filename)
+    {
+        $url = $this->zingMp3Service->getLyricUrl($zing_id);
+        if (isset($url)) {
+            LyricService::saveLyricFileFromUrl($url, $filename);
+            return $filename;
+        } else {
+            return null;
+        }
     }
 }
