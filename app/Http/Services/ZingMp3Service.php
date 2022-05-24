@@ -74,7 +74,10 @@ class ZingMp3Service
         return response()->json($result);
     }
 
-    public function searchSong($text)
+    /**
+     * Not used! Just for testing and documentation
+     */
+    public function searchSongWithComment($text)
     {
         // echo hash('sha256', 'aaa'); // demo
         // echo hash_hmac('sha512', 'aaa', 'bbb'); // still a demo :v
@@ -121,6 +124,19 @@ class ZingMp3Service
         return response()->json($result);
     }
 
+    public function searchSong($text)
+    {
+        $uri = "/api/v2/search";
+        $paramsToHashArr = [
+            'type' => 'song',
+            'page' => 1,
+            'count' => 18,
+            'version' => ZingMp3Service::VERSION,
+            'ctime' => time()
+        ];
+        return $this->requestZing($uri, $paramsToHashArr, ['q' => $text]);
+    }
+
     /**
      * Hiện tại chỉ lấy được streaming 128k, còn 320k thì yêu cầu VIP,
      * mặc dù inspect trên web Zing thì API có return 320k
@@ -129,12 +145,27 @@ class ZingMp3Service
     public function getStream($zing_id)
     {
         $uri = '/api/v2/song/get/streaming';
-        $ctime = time(); // ex: 1653213682
         $paramsToHashArr = [
             'id' => $zing_id,
             'version' => ZingMp3Service::VERSION,
-            'ctime' => $ctime
+            'ctime' => time()
         ];
+        return $this->requestZing($uri, $paramsToHashArr);
+    }
+
+    public function getLyric($zing_id)
+    {
+        $uri = '/api/v2/lyric/get/lyric';
+        $paramsToHashArr = [
+            'id' => $zing_id,
+            'version' => ZingMp3Service::VERSION,
+            'ctime' => time()
+        ];
+        return $this->requestZing($uri, $paramsToHashArr);
+    }
+
+    private function requestZing($uri = '',  $paramsToHashArr = [], $extraParamsRequest = [])
+    {
         ksort($paramsToHashArr);
         $paramsToHashStr = '';
         foreach ($paramsToHashArr as $key => $value) {
@@ -150,6 +181,7 @@ class ZingMp3Service
                 [
                     'sig' => $sig
                 ],
+                $extraParamsRequest,
                 $paramsToHashArr
             )
         ]);

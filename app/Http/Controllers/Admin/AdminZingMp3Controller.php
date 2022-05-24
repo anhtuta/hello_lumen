@@ -45,4 +45,17 @@ class AdminZingMp3Controller extends Controller
 
         return $this->zingMp3Service->searchSong($q);
     }
+
+    public function getLyric(Request $request)
+    {
+        $zing_id = $request->zing_id;
+        $result = new Result();
+
+        if (!isset($zing_id)) {
+            $result->res("Error: param 'zing_id' cannot be empty!");
+            return response()->json($result, 400);
+        }
+
+        return $this->zingMp3Service->getLyric($zing_id);
+    }
 }
