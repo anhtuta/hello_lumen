@@ -17,7 +17,7 @@ class AdminZingMp3Controller extends Controller
 
     // Suggestion khi enter text vào ô search trên Zing Mp3 nhưng chưa
     // click vào icon kính lúp, do đó chưa gọi API search!
-    // Unused!
+    // Currently unused!
     public function suggestion(Request $request)
     {
         $q = $request->q;
@@ -28,7 +28,8 @@ class AdminZingMp3Controller extends Controller
             return response()->json($result, 400);
         }
 
-        return $this->zingMp3Service->suggestion($q);
+        $result->successRes($this->zingMp3Service->suggestion($q));
+        return response()->json($result);
     }
 
     // API search click vào icon kính lúp trên trang Zing.
@@ -43,10 +44,14 @@ class AdminZingMp3Controller extends Controller
             return response()->json($result, 400);
         }
 
-        return $this->zingMp3Service->searchSong($q);
+        $result->successRes($this->zingMp3Service->searchSong($q));
+        return response()->json($result);
     }
 
-    public function getLyric(Request $request)
+    /**
+     * Currently unused!
+     */
+    public function getLyricUrl(Request $request)
     {
         $zing_id = $request->zing_id;
         $result = new Result();
@@ -56,6 +61,7 @@ class AdminZingMp3Controller extends Controller
             return response()->json($result, 400);
         }
 
-        return $this->zingMp3Service->getLyric($zing_id);
+        $result->successRes($this->zingMp3Service->getLyricUrl($zing_id));
+        return response()->json($result);
     }
 }

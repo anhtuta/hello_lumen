@@ -63,15 +63,17 @@ class ZingMp3Service
         // print_r($cookieJar->toArray());
     }
 
+    /**
+     * Get suggestion from Zing Mp3
+     * @return JSON contents from Zing Mp3 which contains suggestion
+     */
     public function suggestion($text)
     {
-        $result = new Result();
         $url = "https://ac.zingmp3.vn/v1/web/suggestion-keywords?num=10&query=" . $text;
         $client = new Client();
         $response = $client->request('GET', $url);
         $contents = $response->getBody()->getContents();
-        $result->successRes(json_decode($contents));
-        return response()->json($result);
+        return json_decode($contents);
     }
 
     /**
@@ -118,12 +120,13 @@ class ZingMp3Service
             )
         ]);
         $contents = $response->getBody()->getContents();
-
-        $result = new Result();
-        $result->successRes(json_decode($contents));
-        return response()->json($result);
+        return json_decode($contents);
     }
 
+    /**
+     * Search song by text from Zing
+     * @return JSON search result from Zing Mp3
+     */
     public function searchSong($text)
     {
         $uri = "/api/v2/search";
@@ -135,16 +138,14 @@ class ZingMp3Service
             'ctime' => time()
         ];
         $contents = $this->requestZing($uri, $paramsToHashArr, ['q' => $text]);
-
-        $result = new Result();
-        $result->successRes(json_decode($contents));
-        return response()->json($result);
+        return json_decode($contents);
     }
 
     /**
      * Hiện tại chỉ lấy được streaming 128k, còn 320k thì yêu cầu VIP,
      * mặc dù inspect trên web Zing thì API có return 320k
      * Có thể API mới Zing đã update nên chưa lấy được 320k, sẽ khám phá sau!
+     * @return JSON contents from Zing Mp3 which contains stream URL
      */
     public function getStream($zing_id)
     {
@@ -155,25 +156,14 @@ class ZingMp3Service
             'ctime' => time()
         ];
         $contents = $this->requestZing($uri, $paramsToHashArr);
-
-        $result = new Result();
-        $result->successRes(json_decode($contents));
-        return response()->json($result);
-    }
-
-    public function getLyric($zing_id)
-    {
-        $lyric = $this->getLyricUrl($zing_id);
-        $result = new Result();
-        $result->successRes($lyric);
-        return response()->json($result);
+        return json_decode($contents);
     }
 
     /**
      * get lyric url from zing
      * @return string lyric url, ex: https://static-zmp3.zmdcdn.me/abc.lrc
      */
-    public function getLyricUrl($zing_id)
+    public function getLyricUrl($zing_id = '')
     {
         $uri = '/api/v2/lyric/get/lyric';
         $paramsToHashArr = [
@@ -188,6 +178,11 @@ class ZingMp3Service
         else return null;
     }
 
+    /**
+     * Send request to Zing, logic of this function is using sha512 to hash param
+     * and hmac to hash(url + hashed_params) using secret key.
+     * @return string content returned from Zing mp3
+     */
     private function requestZing($uri = '',  $paramsToHashArr = [], $extraParamsRequest = [])
     {
         ksort($paramsToHashArr);

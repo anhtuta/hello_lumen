@@ -24,6 +24,8 @@ class ZingMp3Controller extends Controller
             return response()->json($result, 400);
         }
 
-        return $this->zingMp3Service->getStream($zing_id);
+        $json = $this->zingMp3Service->getStream($zing_id);
+        $result->successRes($json);
+        return response()->json($result);
     }
 }
