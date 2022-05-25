@@ -69,8 +69,7 @@ class AdminSongController extends Controller
         $image_url = $request->imageUrl;
         $file = $request->file('file'); // or using $request->file; is OK
         $fileName = $artist . " - " . $title . ".mp3";
-        $pictureName = $artist . " - " . $title  . '_' . time() . ".jpg";  // add time to name to prevent cache in browser
-        $pictureName = UtilsService::cleanWithHyphen($pictureName);
+        $pictureName = $this->getPictureName($title, $artist);
 
         // Check existed song theo tên bài + tên ca sĩ
         $song = Song::where('title', $title)
@@ -129,9 +128,11 @@ class AdminSongController extends Controller
     }
 
     /**
-     * Update the specified song. Only allow updating title, artist, album and picture
+     * Update the specified song. Only allow updating title, artist, album and picture.
+     * Note: Nếu bên route dùng PathVariable: $router->post('/id/{id}', ...);
+     * Thì biến $id sẽ tự động có trong param $request, do đó function ko cần param $id
      */
-    public function updateSong(Request $request, $id)
+    public function updateSong(Request $request)
     {
         $result = new Result();
         $title = $request->title;
@@ -140,8 +141,6 @@ class AdminSongController extends Controller
         $album = $request->album;
         $path = $request->path;
         $lyric = $request->lyric;
-        $zing_id = $request->zing_id;
-        $pictureName = $artist . " - " . $title . '_' . time() . ".jpg";
         $removePicture = $request->removePicture;
 
         $song = Song::find($request->id);
@@ -151,17 +150,14 @@ class AdminSongController extends Controller
             return response()->json($result, 404);
         }
 
-        if (isset($zing_id) && (isset($pictureBase64) || $removePicture == 1)) {
-            $result->res("Error: Cannot edit picture of a Zing song!");
-            return response()->json($result, 400);
-        }
-
         // Nếu ko truyền param pictureBase64 thì sẽ giữ nguyên picture của song (giữ chứ ko xóa nhé!)
+        // Nếu có truyền param pictureBase64 thì xóa picture hiện tại trước, sau đó thay = picture đó
         // Nếu muốn xóa picture thì phải truyền param removePicture = 1
         if (isset($pictureBase64)) {
             if ($song->image_name) {
                 SongService::removePicture($song->image_name);
             }
+            $pictureName = $this->getPictureName($title, $artist);
             $song->image_name = $pictureName;
             $song->image_url = "/api/song/picture?file=" . $pictureName;
             SongService::savePicture($pictureBase64, $pictureName);
@@ -246,5 +242,11 @@ class AdminSongController extends Controller
         } else {
             return null;
         }
+    }
+
+    private function getPictureName($title, $artist)
+    {
+        // add time to name to prevent cache in browser
+        return UtilsService::cleanWithHyphen($artist . " - " . $title) . '_' . time() . ".jpg";
     }
 }
