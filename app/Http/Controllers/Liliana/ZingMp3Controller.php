@@ -28,4 +28,23 @@ class ZingMp3Controller extends Controller
         $result->successRes($json);
         return response()->json($result);
     }
+
+    public function streaming(Request $request)
+    {
+        $zing_id = $request->zing_id;
+        $result = new Result();
+
+        if (!isset($zing_id)) {
+            $result->res("Error: param 'zing_id' cannot be empty!");
+            return response()->json($result, 400);
+        }
+
+        $json = $this->zingMp3Service->getStream($zing_id);
+
+        // Google hơn nửa tiếng mới ra được cách truy cập value nếu key là 1 số!
+        // Bọn Zing thật khó chịu và ngu học!
+        // Ref: https://stackoverflow.com/a/3240547/7688028
+        $streamUrl = $json->data->{'128'};
+        return response()->download($streamUrl);
+    }
 }

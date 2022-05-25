@@ -146,6 +146,10 @@ class ZingMp3Service
      * mặc dù inspect trên web Zing thì API có return 320k
      * Có thể API mới Zing đã update nên chưa lấy được 320k, sẽ khám phá sau!
      * @return JSON contents from Zing Mp3 which contains stream URL
+     * 
+     * Ví dụ response từ Zing. Note: key nó là số 128 và 320 nhá. Vâng, nó là số đó,
+     * bọn Zing ngu học, việc access key là số của thằng PHP cũng ngu học nốt!
+     * {"err":0,"msg":"Success","data":{"128":"https://static-zmp3.zmdcdn.me/abcdef","320":"VIP"},"timestamp":1653499621669}
      */
     public function getStream($zing_id)
     {
