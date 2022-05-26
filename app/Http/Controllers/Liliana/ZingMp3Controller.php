@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Liliana;
 use App\Http\Common\Result;
 use App\Http\Controllers\Controller;
 use App\Http\Services\ZingMp3Service;
+use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 
 class ZingMp3Controller extends Controller
@@ -44,7 +45,17 @@ class ZingMp3Controller extends Controller
         // Google hơn nửa tiếng mới ra được cách truy cập value nếu key là 1 số!
         // Bọn Zing thật khó chịu và ngu học!
         // Ref: https://stackoverflow.com/a/3240547/7688028
+        if (isset($json->err) && $json->err != 0 && isset($json->msg)) {
+            $result->res("Error: cannot play this song from Zing: " . $json->msg);
+            return response()->json($result, 400);
+        }
+
         $streamUrl = $json->data->{'128'};
-        return response()->download($streamUrl);
+
+        $guzzle = new Client();
+        $response = $guzzle->request('GET', $streamUrl);
+        return response($response->getBody()->getContents())->withHeaders([
+            'Content-Type' => 'audio/mpeg'
+        ]);
     }
 }
