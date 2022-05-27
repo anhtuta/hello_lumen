@@ -8,15 +8,18 @@
 Laravel Lumen is a stunningly fast PHP micro-framework for building web applications with expressive, elegant syntax. We believe development must be an enjoyable, creative experience to be truly fulfilling. Lumen attempts to take the pain out of development by easing common tasks used in the majority of web projects, such as routing, database abstraction, queueing, and caching.
 
 ## How to run on local
+
 Sau khi pull code về thì:
-- Cần tạo file .env ở thư mục gốc, sau đó sửa file này giống với file .env.prd (config phù hợp với local)
-- Cài thư viện: ```composer install``` (lệnh này sẽ tải các dependency và lưu vào thư mục vender)
-- Run project: ```php -S localhost:8888 -t public```
+
+-   Cần tạo file .env ở thư mục gốc, sau đó sửa file này giống với file .env.prd (config phù hợp với local)
+-   Cài thư viện: `composer install` (lệnh này sẽ tải các dependency và lưu vào thư mục vender)
+-   Run project: `php -S localhost:8888 -t public`
 
 ## Chú ý
-- Khi copy file lên product (hosting), thì phải sửa file .env (bằng cách copy nội dung của file .env.prd vào file .env là được). Còn nữa, copy file lên product ko cần copy thư mục vendor đâu, nó là thư viện KHÔNG được sửa!
-- File .env.prd ko dùng, nó chỉ lưu config ở product thôi
-- Trên cpanel cần sửa 2 tham số sau, nếu ko sẽ KHÔNG upload được file: upload_max_filesize và post_max_size:
+
+-   Khi copy file lên product (hosting), thì phải sửa file .env (bằng cách copy nội dung của file .env.prd vào file .env là được). Còn nữa, copy file lên product chỉ cần copy thư mục `vendor` ở lần đầu tiên thôi, từ lần sau nếu ko update dependency gì (file `composer.json` ko thay đổi) thì ko cần copy lại thư mục này nữa
+-   File .env.prd ko dùng, nó chỉ lưu config ở product thôi
+-   Trên cpanel cần sửa 2 tham số sau, nếu ko sẽ KHÔNG upload được file: upload_max_filesize và post_max_size:
 
 ![Fix error when upload file](./error-when-upload-file.PNG)
 
@@ -24,8 +27,11 @@ Thường thì post_max_size > upload_max_filesize (cpanel gợi ý vậy).
 Ref: https://chemicloud.com/kb/article/how-to-increase-the-upload_max_filesize-limit-in-cpanel/
 
 ## Notes
+
 ### Return an object
+
 Chẳng hạn ta muốn mọi API đều return theo 1 format là kiểu Result:
+
 ```php
 public function getSongById($id)
 {
@@ -36,7 +42,8 @@ public function getSongById($id)
 }
 ```
 
-Muốn làm được như vậy thì class Result phải implement 1 trong 2 interface sau: ```Arrayable``` (phải override method ```toArray```) hoặc ```Jsonable``` (phải override method ```toJson```), bởi vì class Illuminate\Http\Response có method convert object sang JSON như sau:
+Muốn làm được như vậy thì class Result phải implement 1 trong 2 interface sau: `Arrayable` (phải override method `toArray`) hoặc `Jsonable` (phải override method `toJson`), bởi vì class Illuminate\Http\Response có method convert object sang JSON như sau:
+
 ```php
 protected function morphToJson($content)
 {
@@ -47,6 +54,45 @@ protected function morphToJson($content)
   }
 
   return json_encode($content);
+}
+```
+
+### Php giống Javascript
+
+Cả 2 đúng là ngôn ngữ script, giống nhau ở chỗ biến đều ko có kiểu, nên mỗi biến, mỗi function, mỗi param chả biết nó thuộc kiểu gì! Do đó cần quy ước như sau để dễ code:
+
+-   Mỗi function phải có comment `@return` để chỉ rõ kiểu object sẽ được trả về
+-   Các param của function phải có giá trị default để biết nó thuộc kiểu gì (nếu là object thì default = {} cho đơn giản)
+-   Controller sẽ tạo mới biến `Result` để trả về, các Service KHÔNG return kiểu `Result` mà chỉ return kiểu string, json... để bên controller dùng nó setData cho `Result`
+
+Ex:
+
+```php
+// controller: phải tạo mới và return object Result
+public function getStream(Request $request)
+{
+    $zing_id = $request->zing_id;
+    $json = $this->zingMp3Service->getStream($zing_id);
+    $result = new Result();
+    $result->successRes($json);
+    return response()->json($result);
+}
+
+// service:
+/**
+ * Mô tả method ở đây...
+ * @return JSON contents from Zing Mp3 which contains stream URL
+ */
+public function getStream($zing_id = '') // default value để biến param này có kiểu string
+{
+    $uri = '/api/v2/song/get/streaming';
+    $paramsToHashArr = [
+        'id' => $zing_id,
+        'version' => ZingMp3Service::VERSION,
+        'ctime' => time()
+    ];
+    $contents = $this->requestZing($uri, $paramsToHashArr);
+    return json_decode($contents); // chỉ return string, number, json... chứ KHÔNG return object Result
 }
 ```
 

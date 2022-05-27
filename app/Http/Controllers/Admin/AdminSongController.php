@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Common\Result;
 use App\Http\Controllers\Controller;
+use App\Http\Services\LyricService;
 use App\Http\Services\SongService;
+use App\Http\Services\UtilsService;
+use App\Http\Services\ZingMp3Service;
 use App\Models\Song;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +18,7 @@ class AdminSongController extends Controller
     public function __construct()
     {
         $this->middleware('auth:api');
+        $this->zingMp3Service = new ZingMp3Service();
     }
 
     public function getSongs(Request $request)
@@ -61,10 +65,13 @@ class AdminSongController extends Controller
         $path = $request->path;
         $type = $request->type;
         $lyric = $request->lyric;
+        $zing_id = $request->zing_id;
+        $image_url = $request->imageUrl;
         $file = $request->file('file'); // or using $request->file; is OK
         $fileName = $artist . " - " . $title . ".mp3";
-        $pictureName = $artist . " - " . $title  . '_' . time() . ".jpg";  // add time to name to prevent cache in browser
+        $pictureName = $this->getPictureName($title, $artist);
 
+        // Check existed song theo tên bài + tên ca sĩ
         $song = Song::where('title', $title)
             ->where('artist', $artist)
             ->first();
@@ -78,16 +85,30 @@ class AdminSongController extends Controller
             $result->res("Error: This song has already existed!");
             return response()->json($result, 400);
         } else {
-            if ($song->image_name) {
-                if (!SongService::removePicture(($song->image_name))) {
-                    $result->res("Error: Cannot delete old picture!");
-                    return response()->json($result, 400);
-                }
+            // xóa ảnh cũ của song này đi, sau đó sẽ update bằng ảnh mới từ request
+            if ($song->image_name && !SongService::removePicture(($song->image_name))) {
+                $result->res("Error: Cannot delete old picture!");
+                return response()->json($result, 400);
             }
         }
 
-        SongService::saveMp3File($file, $type, $fileName);
+        if (!isset($zing_id)) {
+            SongService::saveMp3File($file, $type, $fileName);
+            $song->file_name = $fileName;
+            $song->lyric = $lyric;
+        } else {
+            $song->zing_id = $zing_id;
+            $song->lyric = $this->downloadZingLyric(
+                $zing_id,
+                UtilsService::cleanWithHyphen($artist . " - " . $title) . '.lrc'
+            );
+            if (isset($image_url)) {
+                $song->image_url = $image_url;
+            }
+        }
 
+        // Note: tuy chọn song từ Zing nhưng vẫn có thể chọn ảnh khác từ local,
+        // lúc này image_url chứa ảnh từ zing đã set ở trên sẽ bị ghi đè
         if (isset($pictureBase64)) {
             $song->image_name = $pictureName;
             $song->image_url = "/api/song/picture?file=" . $pictureName;
@@ -99,8 +120,6 @@ class AdminSongController extends Controller
         $song->album = $album;
         $song->path = $path;
         $song->type = $type;
-        $song->lyric = $lyric;
-        $song->file_name = $fileName;
         $song->is_deleted = 0;
         $song->save();
 
@@ -109,9 +128,11 @@ class AdminSongController extends Controller
     }
 
     /**
-     * Update the specified song. Only allow updating title, artist, album and picture
+     * Update the specified song. Only allow updating title, artist, album and picture.
+     * Note: Nếu bên route dùng PathVariable: $router->post('/id/{id}', ...);
+     * Thì biến $id sẽ tự động có trong param $request, do đó function ko cần param $id
      */
-    public function updateSong(Request $request, $id)
+    public function updateSong(Request $request)
     {
         $result = new Result();
         $title = $request->title;
@@ -120,7 +141,6 @@ class AdminSongController extends Controller
         $album = $request->album;
         $path = $request->path;
         $lyric = $request->lyric;
-        $pictureName = $artist . " - " . $title . '_' . time() . ".jpg";
         $removePicture = $request->removePicture;
 
         $song = Song::find($request->id);
@@ -131,11 +151,13 @@ class AdminSongController extends Controller
         }
 
         // Nếu ko truyền param pictureBase64 thì sẽ giữ nguyên picture của song (giữ chứ ko xóa nhé!)
+        // Nếu có truyền param pictureBase64 thì xóa picture hiện tại trước, sau đó thay = picture đó
         // Nếu muốn xóa picture thì phải truyền param removePicture = 1
         if (isset($pictureBase64)) {
             if ($song->image_name) {
                 SongService::removePicture($song->image_name);
             }
+            $pictureName = $this->getPictureName($title, $artist);
             $song->image_name = $pictureName;
             $song->image_url = "/api/song/picture?file=" . $pictureName;
             SongService::savePicture($pictureBase64, $pictureName);
@@ -207,4 +229,24 @@ class AdminSongController extends Controller
         return (new Result())->successRes('Updated! Total rows: ' . $count);
     }
 
+    /**
+     * Download lyric .lrc from Zing
+     * @return string filename has been saved to server. If Zing doesn't have lyric, return null
+     */
+    private function downloadZingLyric($zing_id, $filename)
+    {
+        $url = $this->zingMp3Service->getLyricUrl($zing_id);
+        if (isset($url)) {
+            LyricService::saveLyricFileFromUrl($url, $filename);
+            return $filename;
+        } else {
+            return null;
+        }
+    }
+
+    private function getPictureName($title, $artist)
+    {
+        // add time to name to prevent cache in browser
+        return UtilsService::cleanWithHyphen($artist . " - " . $title) . '_' . time() . ".jpg";
+    }
 }

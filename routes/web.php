@@ -13,7 +13,9 @@
 |
 */
 $router->get('hello-world', function () {
-    return 'Hello world!';
+    $out[] = 'Hello';
+    $out[] = 'world';
+    return $out; // ["Hello","world"]
 });
 
 /***********
@@ -51,6 +53,18 @@ $router->group(['prefix' => 'api/song'], function () use ($router) {
     $router->get('/update-path', 'Admin\AdminSongController@updatePath');
     $router->get('/update-lyric', 'Liliana\SongController@updateLyric');
 });
+
+/***********
+ * Zing MP3 routes
+ ***********/
+$router->group(['prefix' => 'api/zing/mp3'], function () use ($router) {
+    $router->get('/suggestion', 'Admin\AdminZingMp3Controller@suggestion');
+    $router->get('/search/song', 'Admin\AdminZingMp3Controller@searchSong');
+    $router->get('/stream', 'Liliana\ZingMp3Controller@getStream');
+    $router->get('/streaming', 'Liliana\ZingMp3Controller@streaming');
+    $router->get('/lyric/url', 'Admin\AdminZingMp3Controller@getLyricUrl');
+});
+
 
 /***********
  * Lyric routes
