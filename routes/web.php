@@ -13,7 +13,9 @@
 |
 */
 $router->get('hello-world', function () {
-    return 'Hello world!';
+    $out[] = 'Hello';
+    $out[] = 'world';
+    return $out; // ["Hello","world"]
 });
 
 /***********
