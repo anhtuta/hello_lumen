@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Log;
 
 class AdminSongController extends Controller
 {
+    private ZingMp3Service $zingMp3Service;
+
     public function __construct()
     {
         $this->middleware('auth:api');
@@ -98,9 +100,9 @@ class AdminSongController extends Controller
             $song->lyric = $lyric;
         } else {
             $song->zing_id = $zing_id;
-            $song->lyric = $this->downloadZingLyric(
+            $song->lyric = $this->zingMp3Service->downloadLyric(
                 $zing_id,
-                UtilsService::cleanWithHyphen($artist . " - " . $title) . '.lrc'
+                UtilsService::cleanWithHyphen($artist . " - " . $title)
             );
             if (isset($image_url)) {
                 $song->image_url = $image_url;
@@ -190,13 +192,18 @@ class AdminSongController extends Controller
         if (!$song) {
             $result->res("Error: Song not found!");
             return response()->json($result, 404);
+        } else if ($song->is_deleted == 1) {
+            $result->res("Error: Song has been deleted already!");
+            return response()->json($result, 400);
         }
 
-        // Delete file associated with this song
-        $filePath = SongService::getFilePathByFileName($song->file_name);
-        if (!unlink($filePath)) {
-            $result->res("Error: Cannot delete a file!");
-            return response()->json($result, 404);
+        if (isset($song->file_name)) {
+            // Delete file associated with this song
+            $filePath = SongService::getFilePathByFileName($song->file_name);
+            if (!unlink($filePath)) {
+                $result->res("Error: Cannot delete a file!");
+                return response()->json($result, 404);
+            }
         }
 
         // Delete this song in database by updating is_deleted column
@@ -227,21 +234,6 @@ class AdminSongController extends Controller
         }
 
         return (new Result())->successRes('Updated! Total rows: ' . $count);
-    }
-
-    /**
-     * Download lyric .lrc from Zing
-     * @return string filename has been saved to server. If Zing doesn't have lyric, return null
-     */
-    private function downloadZingLyric($zing_id, $filename)
-    {
-        $url = $this->zingMp3Service->getLyricUrl($zing_id);
-        if (isset($url)) {
-            LyricService::saveLyricFileFromUrl($url, $filename);
-            return $filename;
-        } else {
-            return null;
-        }
     }
 
     private function getPictureName($title, $artist)

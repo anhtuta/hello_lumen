@@ -2,10 +2,13 @@
 
 namespace App\Http\Services;
 
+use Exception;
+
 class SongService
 {
-    public static function getFilePathByFileName($fileName)
+    public static function getFilePathByFileName($fileName = '')
     {
+        if ($fileName == '') throw new Exception('filename cannot be null or empty');
         $mp3Folder = env('LL_MP3_FOLDER', '');
         $listOfFolders = scandir($mp3Folder);
         $totalFolder = count($listOfFolders);

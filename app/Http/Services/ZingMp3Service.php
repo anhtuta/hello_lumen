@@ -7,6 +7,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Request;
+use PHPUnit\Util\Json;
 use Psr\Http\Message\RequestInterface;
 
 class ZingMp3Service
@@ -32,7 +33,7 @@ class ZingMp3Service
         // Ref: https://stackoverflow.com/a/38758183/7688028
         $handler = HandlerStack::create();
         $handler->push(Middleware::mapRequest(function (RequestInterface $request) use ($defaultParams) {
-            $uri  = $request->getUri();
+            $uri = $request->getUri();
             $uri .= ($uri ? '&' : '');
             $uri .= http_build_query($defaultParams);
 
@@ -146,7 +147,7 @@ class ZingMp3Service
      * mặc dù inspect trên web Zing thì API có return 320k
      * Có thể API mới Zing đã update nên chưa lấy được 320k, sẽ khám phá sau!
      * @return JSON contents from Zing Mp3 which contains stream URL
-     * 
+     *
      * Ví dụ response từ Zing. Note: key nó là số 128 và 320 nhá. Vâng, nó là số đó,
      * bọn Zing ngu học, việc access key là số của thằng PHP cũng ngu học nốt!
      * {"err":0,"msg":"Success","data":{"128":"https://static-zmp3.zmdcdn.me/abcdef","320":"VIP"},"timestamp":1653499621669}
@@ -164,10 +165,16 @@ class ZingMp3Service
     }
 
     /**
-     * get lyric url from zing
-     * @return string lyric url, ex: https://static-zmp3.zmdcdn.me/abc.lrc
+     * get lyric url from zing, return lyric url,
+     * ex: https://static-zmp3.zmdcdn.me/abc.lrc
      */
-    public function getLyricUrl($zing_id = '')
+    public function getLyricUrl($zing_id = ''): ?string
+    {
+        $json = $this->getLyricRaw($zing_id);
+        return $json->data->file ?? null;
+    }
+
+    public function getLyricRaw($zing_id = '')
     {
         $uri = '/api/v2/lyric/get/lyric';
         $paramsToHashArr = [
@@ -176,10 +183,119 @@ class ZingMp3Service
             'ctime' => time()
         ];
         $contents = $this->requestZing($uri, $paramsToHashArr);
-        $json = json_decode($contents);
-        if (isset($json) && isset($json->data->file))
-            return $json->data->file;
-        else return null;
+        return json_decode($contents);
+    }
+
+    /**
+     * Download lyric file from Zing
+     * @param string filename tên file sẽ lưu, KHÔNG có extension
+     * (extension sẽ được chọn sau khi gọi API, ưu tiên chọn .trc, sau đó là .lrc)
+     * @return string filename has been saved to server. If Zing doesn't have lyric, return null
+     */
+    public function downloadLyric($zing_id = '', $filename = ''): ?string
+    {
+        if ($filename == '') {
+            $filename = $zing_id . '_' . time();
+        }
+        $json = $this->getLyricRaw($zing_id);
+        if (isset($json->data->sentences)) {
+            return $this->downloadLyricTrc($json->data->sentences, $filename . '.trc');
+        } else if (isset($json->data->file)) {
+            return $this->downloadLyricLrc($json->data->file, $filename . '.lrc');
+        }
+
+        return null;
+    }
+
+    private function downloadLyricLrc($url, $filename): ?string
+    {
+        LyricService::saveLyricFileFromUrl($url, $filename);
+        return $filename;
+    }
+
+    /*
+    Example: $sentences = [
+      {
+        "words": [
+          { "startTime": 36189, "endTime": 36289, "data": "Tôi" },
+          { "startTime": 36339, "endTime": 36840, "data": "không" },
+          { "startTime": 36879, "endTime": 37419, "data": "tin" },
+          { "startTime": 37419, "endTime": 37699, "data": "đời" },
+          { "startTime": 37699, "endTime": 38419, "data": "tôi" }
+        ]
+      },
+      {
+        "words": [
+          { "startTime": 39159, "endTime": 39369, "data": "Có" },
+          { "startTime": 39369, "endTime": 39639, "data": "em" },
+          { "startTime": 39639, "endTime": 39900, "data": "rồi" },
+          { "startTime": 39900, "endTime": 40180, "data": "phải" }
+        ]
+      }]
+     */
+    private function downloadLyricTrc($sentences = [], $filename = ''): ?string
+    {
+        $lyricFolder = env('LL_LYRIC_FOLDER', '') or die("Unable to open file!");
+        $file = fopen($lyricFolder . DIRECTORY_SEPARATOR . $filename, "w");
+        $this->writeMeta($file);
+
+        // foreach ($sentences as $sentence) {
+        for ($i = 0; $i < count($sentences) - 1; $i++) {
+            $words = $sentences[$i]->words;
+            // print_r($words);
+            $line = $this->formatStartLine($words[0]->startTime);
+            $wordCnt = count($words);
+
+            for ($j = 0; $j < $wordCnt; $j++) {
+                $currWord = $words[$j];
+
+                $ms = $currWord->endTime - $currWord->startTime;
+                $nextWord = null;
+                if ($j < $wordCnt - 1) {
+                    $nextWord = $words[$j + 1];
+                } else if ($i < count($sentences) - 1) {
+                    $nextWord = $sentences[$i + 1]->words[0];
+                }
+
+                $gap = isset($nextWord) ? ($nextWord->startTime - $currWord->endTime) : 0;
+                $line .= '<' . ($ms + $gap) . '>' .  $currWord->data . ' ';
+            }
+
+            fwrite($file, trim($line) . PHP_EOL);
+        }
+
+        fclose($file);
+        return $filename;
+    }
+
+    private function writeMeta($file)
+    {
+        fwrite($file, '[by:Tuzaku]' . PHP_EOL);
+        fwrite($file, '[source:ZingMp3]' . PHP_EOL);
+        fwrite($file, '[date:' . date("Y-m-d") . ']' . PHP_EOL);
+    }
+
+
+    /**
+     * Ref: Zuka lyric maker (getFormattedPassTime)
+     * Trả về thời gian theo format [minute:second.millisecond], ex: [00:36.189]
+     * @param {int} ms: thời gian cần format (millisecond), ex: 36189 (36 giây 189ms)
+     **/
+    private function formatStartLine($ms = 0)
+    {
+        $minute = floor($ms / 60000);  // 1 minute = 60000 ms
+        $second = ($ms - $minute * 60000) / 1000;   //1 second = 1000 ms
+
+        // PHP ko dùng được % để check số nguyên giống JS
+        // ex: php: 1.23 % 1 = 1
+        // còn js: 1.23 % 1 = 0.22999999999999998
+        // if ($second % 1 == 0) $second = $second . ".000";    // code JS
+        if (is_int($second)) $second = $second . ".000";
+
+        return "[" .
+            ($minute < 10 ? "0" . $minute : $minute) . ":" .
+            ($second < 10 ? "0" . $second : $second) .
+            "]";
     }
 
     /**
@@ -187,7 +303,7 @@ class ZingMp3Service
      * and hmac to hash(url + hashed_params) using secret key.
      * @return string content returned from Zing mp3
      */
-    private function requestZing($uri = '',  $paramsToHashArr = [], $extraParamsRequest = [])
+    private function requestZing($uri = '', $paramsToHashArr = [], $extraParamsRequest = []): string
     {
         ksort($paramsToHashArr);
         $paramsToHashStr = '';
