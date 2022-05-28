@@ -22,6 +22,8 @@ class UtilsService
      * Vẫn chưa hiểu logic của code này, chả hiểu sao nó lại work, thật magic!!!
      * Thậm chí ko cần setHeader: 'Content-Type' = 'audio/mpeg'
      * Ref: https://stackoverflow.com/a/18271362/7688028
+     * Ref: https://stackoverflow.com/a/18271545/7688028
+     * Ref: https://stackoverflow.com/questions/8401412/php-streaming-video-handler
      */
     public static function streamFromUrl($url)
     {
@@ -31,15 +33,20 @@ class UtilsService
             $opts['http']['header'] = "Range: " . $_SERVER['HTTP_RANGE'];
         }
 
+        // request method HEAD để đọc info của file, sẽ nhanh hơn nhiều
+        // so với dùng request GET
         $opts['http']['method'] = "HEAD";
+        $conh = stream_context_create($opts);
+
         $opts['http']['method'] = "GET";
-        $steamContext = stream_context_create($opts);
-        $out[] = file_get_contents($url, false, $steamContext);
+        $cong = stream_context_create($opts);
+
+        // Chưa hiểu đoạn này! biến $out[] dùng chỗ nào???
+        $out[] = file_get_contents($url, false, $conh);
         $out[] = $http_response_header;
 
         ob_end_clean();
         array_map("header", $http_response_header);
-        $cong = stream_context_create($opts);
         readfile($url, false, $cong);
     }
 }
