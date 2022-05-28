@@ -19,8 +19,6 @@ class UtilsService
 
     /**
      * stream file from URL
-     * Vẫn chưa hiểu logic của code này, chả hiểu sao nó lại work, thật magic!!!
-     * Thậm chí ko cần setHeader: 'Content-Type' = 'audio/mpeg'
      * Ref: https://stackoverflow.com/a/18271362/7688028
      * Ref: https://stackoverflow.com/a/18271545/7688028
      * Ref: https://stackoverflow.com/questions/8401412/php-streaming-video-handler
@@ -36,17 +34,51 @@ class UtilsService
         // request method HEAD để đọc info của file, sẽ nhanh hơn nhiều
         // so với dùng request GET
         $opts['http']['method'] = "HEAD";
-        $conh = stream_context_create($opts);
+        $contextHead = stream_context_create($opts);
 
+        // request này dùng để stream trên browser
         $opts['http']['method'] = "GET";
-        $cong = stream_context_create($opts);
+        $contextGet = stream_context_create($opts);
 
-        // Chưa hiểu đoạn này! biến $out[] dùng chỗ nào???
-        $out[] = file_get_contents($url, false, $conh);
-        $out[] = $http_response_header;
+        // Để ý method này dùng contextHead, tức là lấy header từ url,
+        // và gán vào biến $http_response_header
+        file_get_contents($url, false, $contextHead);
+
+        $newHeaders = UtilsService::changeContentDispositionInline($http_response_header);
 
         ob_end_clean();
-        array_map("header", $http_response_header);
-        readfile($url, false, $cong);
+        array_map("header", $newHeaders);
+        readfile($url, false, $contextGet);
+    }
+
+    /*
+    $http_response_header sẽ trông giống như này
+    [
+        "HTTP/1.0 200 OK",
+        "Server: nginx",
+        "Content-Type: audio/mpeg",
+        "Content-Length: 4481024",
+        "ETag: 0d25322fd2e16abe33f1",
+        "Origin: 358.27",
+        "Content-Disposition: attachment; filename=\"Toi-Khong-Tin-Ung-Hoang-Phuc-Ung-Hoang-Phuc_128.mp3\"",
+        "Accept-Ranges: bytes",
+        "Cache-Control: max-age=2430389",
+        "Date: Sat, 28 May 2022 12:40:07 GMT",
+        "Connection: close"
+    ]
+    Cần sửa giá trị 'Content-Disposition: attachment' thành 'inline', nếu ko browser sẽ
+    download file mp3 thay vì play trực tiếp nó
+    */
+    private static function changeContentDispositionInline($headers)
+    {
+        $newHeaders = [];
+        foreach ($headers as $header) {
+            if (strpos($header, 'Content-Disposition') !== false) {
+                array_push($newHeaders, str_replace('attachment', 'inline', $header));
+            } else {
+                array_push($newHeaders, $header);
+            }
+        }
+        return $newHeaders;
     }
 }
