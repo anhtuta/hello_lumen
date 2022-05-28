@@ -2,7 +2,6 @@
 
 namespace App\Http\Services;
 
-use App\Http\Common\Result;
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
@@ -285,16 +284,11 @@ class ZingMp3Service
     {
         $minute = floor($ms / 60000);  // 1 minute = 60000 ms
         $second = ($ms - $minute * 60000) / 1000;   //1 second = 1000 ms
-
-        // PHP ko dùng được % để check số nguyên giống JS
-        // ex: php: 1.23 % 1 = 1
-        // còn js: 1.23 % 1 = 0.22999999999999998
-        // if ($second % 1 == 0) $second = $second . ".000";    // code JS
-        if (is_int($second)) $second = $second . ".000";
+        $fractionStr = $second - floor($second) == 0 ? '.000' : '';
 
         return "[" .
             ($minute < 10 ? "0" . $minute : $minute) . ":" .
-            ($second < 10 ? "0" . $second : $second) .
+            ($second < 10 ? "0" . $second : $second) . $fractionStr .
             "]";
     }
 
