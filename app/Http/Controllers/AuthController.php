@@ -16,7 +16,7 @@ class AuthController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['register', 'login']]);
+        $this->middleware('auth:api', ['except' => ['register', 'login', 'hashPw']]);
     }
 
     /**
@@ -80,13 +80,23 @@ class AuthController extends Controller
     public function me()
     {
         $result = new Result();
-        if(Auth::check()) {
+        if (Auth::check()) {
             $result->res("SUCCESS!", Auth::guard()->user());
             return response()->json($result);
         } else {
             $result->res("Invalid token");
             return response()->json($result, 401);
         }
+    }
+
+    public function hashPw(Request $request)
+    {
+        $result = new Result();
+        if (!isset($request->pw)) {
+            $result->failRes("'pw' param cannot be null or empty!");
+            return response()->json($result, 400);
+        }
+        return app('hash')->make($request->pw);
     }
 
     /**
