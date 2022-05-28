@@ -96,6 +96,23 @@ public function getStream($zing_id = '') // default value để biến param nà
 }
 ```
 
+### Http method HEAD
+
+Tương tự như method GET, nhưng nó KHÔNG có body mà chỉ có header, do đó request này dùng để lấy header, chẳng hạn như 1 API return 1 file, thì request này có thể đọc header để lấy info liên quan đến file như tên, size, type, length...
+
+Nếu dùng method GET để làm việc này thì sẽ tốn rất lâu, có lẽ = thời gian download file đó về
+
+### Content-Disposition response header
+
+> A header indicating if the content is expected to be displayed inline in the browser, that is, as a Web page or as part of a Web page, or as an attachment, that is downloaded and saved locally
+
+Header này cho biết content sẽ được hiển thị trên browser (file mp3/mp4 có thể phát luôn trên browser) hay sẽ được download về
+
+-   Nếu muốn hiển thị nội dung file trên browser: `Content-Disposition: inline`
+-   Nếu muốn download file: `Content-Disposition: attachment`
+
+Ref: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition
+
 ## Official Documentation
 
 Documentation for the framework can be found on the [Lumen website](https://lumen.laravel.com/docs).

@@ -44,10 +44,15 @@ class UtilsService
         // và gán vào biến $http_response_header
         file_get_contents($url, false, $contextHead);
 
+        // Lấy header từ request HEAD, sửa lại giá trị Content-Disposition = inline
         $newHeaders = UtilsService::changeContentDispositionInline($http_response_header);
 
         ob_end_clean();
+
+        // set header for response
         array_map("header", $newHeaders);
+
+        // return file to response
         readfile($url, false, $contextGet);
     }
 
