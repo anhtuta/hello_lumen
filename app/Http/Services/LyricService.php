@@ -13,6 +13,6 @@ class LyricService
     public static function saveLyricFileFromUrl($url = '', $filename = '')
     {
         $lyricFolder = env('LL_LYRIC_FOLDER', '');
-        return file_put_contents($lyricFolder . '/' . $filename,  file_get_contents($url));
+        return file_put_contents($lyricFolder . DIRECTORY_SEPARATOR . $filename, file_get_contents($url));
     }
 }
