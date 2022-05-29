@@ -66,6 +66,7 @@ $router->group(['prefix' => 'api/zing/mp3'], function () use ($router) {
     $router->get('/lyric/url', 'Admin\AdminZingMp3Controller@getLyricUrl');
     $router->get('/lyric/raw', 'Admin\AdminZingMp3Controller@getLyricRaw');
     $router->get('/lyric/download', 'Admin\AdminZingMp3Controller@downloadLyric'); // for testing
+    $router->get('/lyric/update', 'Admin\AdminZingMp3Controller@updateLyric');
 });
 
 
