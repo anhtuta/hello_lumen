@@ -238,12 +238,13 @@ class ZingMp3Service
         $file = fopen($lyricFolder . DIRECTORY_SEPARATOR . $filename, "w");
         $this->writeMeta($file);
         $cntSen = count($sentences);
+        $gap = 0; // gap between each word
 
-        // foreach ($sentences as $sentence) {
         for ($i = 0; $i < $cntSen; $i++) {
             $words = $sentences[$i]->words;
             $line = $this->formatStartLine($words[0]->startTime);
             $wordCnt = count($words);
+            $emptyLine = '';
 
             for ($j = 0; $j < $wordCnt; $j++) {
                 $currWord = $words[$j];
@@ -254,15 +255,22 @@ class ZingMp3Service
                 } else if ($i < $cntSen - 1) {
                     $nextWord = $sentences[$i + 1]->words[0];
                 } else {
-                    // $i = $cntSen - 1: từ cuối cùng của câu cuối cùng
+                    // $j = $wordCnt - 1 & $i = $cntSen - 1: từ cuối cùng của câu cuối cùng
                     $nextWord = null;
                 }
 
                 $gap = isset($nextWord) ? ($nextWord->startTime - $currWord->endTime) : 0;
-                $line .= '<' . ($ms + $gap) . '>' .  $currWord->data . ($j < $wordCnt - 1 ? ' ' : '');
+
+                if ($j == $wordCnt - 1 && $gap >= 4000) {
+                    $emptyLine = $this->formatStartLine($currWord->endTime);
+                    $emptyLine .= $this->formatWord(' ', $gap, false);
+                    $gap = 0;
+                }
+                $line .= $this->formatWord($currWord->data, $ms + $gap, $j < $wordCnt - 1);
             }
 
             fwrite($file, $line . PHP_EOL);
+            if ($emptyLine != '') fwrite($file, $emptyLine . PHP_EOL);
         }
 
         fclose($file);
@@ -276,6 +284,10 @@ class ZingMp3Service
         fwrite($file, '[date:' . date("Y-m-d") . ']' . PHP_EOL);
     }
 
+    private function formatWord($word = '', $ms = 0, $extraSpace = false)
+    {
+        return '<' . $ms . '>' .  $word . ($extraSpace ? ' ' : '');
+    }
 
     /**
      * Ref: Zuka lyric maker (getFormattedPassTime)
