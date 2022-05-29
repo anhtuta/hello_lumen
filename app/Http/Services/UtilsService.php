@@ -2,6 +2,8 @@
 
 namespace App\Http\Services;
 
+use Illuminate\Support\Arr;
+
 class UtilsService
 {
     // Note: khi update method này cũng phải update method phía FE
@@ -56,6 +58,35 @@ class UtilsService
         readfile($url, false, $contextGet);
     }
 
+    /**
+     * stream file from URL
+     * Cách này tham khảo 1 member trên facebook, ý tưởng đơn giản hơn
+     * (ko cần request HEAD để đọc header trước, mà GET xong return luôn):
+     * 1. Tạo stream_context_create method GET
+     * 2. Lấy header từ request đó
+     * 3. readfile và return
+     */
+    public static function streamFromUrlWithoutHead($url)
+    {
+        $opts = array(
+            'http' => array(
+                'method' => 'GET'
+            )
+        );
+        $context = stream_context_create($opts);
+        $fp = fopen($url, 'r', false, $context);
+        $meta = stream_get_meta_data($fp);
+
+        foreach ($meta['wrapper_data'] as $header) {
+            print_r($header);
+            header($header);
+        }
+        header('Content-Disposition: inline');
+
+        // return file to response
+        readfile($url, false, $context);
+    }
+
     /*
     $http_response_header sẽ trông giống như này
     [
@@ -74,7 +105,7 @@ class UtilsService
     Cần sửa giá trị 'Content-Disposition: attachment' thành 'inline', nếu ko browser sẽ
     download file mp3 thay vì play trực tiếp nó
     */
-    private static function changeContentDispositionInline($headers)
+    private static function changeContentDispositionInline($headers = [])
     {
         $newHeaders = [];
         foreach ($headers as $header) {
