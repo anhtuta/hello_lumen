@@ -237,30 +237,32 @@ class ZingMp3Service
         $lyricFolder = env('LL_LYRIC_FOLDER', '') or die("Unable to open file!");
         $file = fopen($lyricFolder . DIRECTORY_SEPARATOR . $filename, "w");
         $this->writeMeta($file);
+        $cntSen = count($sentences);
 
         // foreach ($sentences as $sentence) {
-        for ($i = 0; $i < count($sentences) - 1; $i++) {
+        for ($i = 0; $i < $cntSen; $i++) {
             $words = $sentences[$i]->words;
-            // print_r($words);
             $line = $this->formatStartLine($words[0]->startTime);
             $wordCnt = count($words);
 
             for ($j = 0; $j < $wordCnt; $j++) {
                 $currWord = $words[$j];
-
                 $ms = $currWord->endTime - $currWord->startTime;
                 $nextWord = null;
                 if ($j < $wordCnt - 1) {
                     $nextWord = $words[$j + 1];
-                } else if ($i < count($sentences) - 1) {
+                } else if ($i < $cntSen - 1) {
                     $nextWord = $sentences[$i + 1]->words[0];
+                } else {
+                    // $i = $cntSen - 1: từ cuối cùng của câu cuối cùng
+                    $nextWord = null;
                 }
 
                 $gap = isset($nextWord) ? ($nextWord->startTime - $currWord->endTime) : 0;
-                $line .= '<' . ($ms + $gap) . '>' .  $currWord->data . ' ';
+                $line .= '<' . ($ms + $gap) . '>' .  $currWord->data . ($j < $wordCnt - 1 ? ' ' : '');
             }
 
-            fwrite($file, trim($line) . PHP_EOL);
+            fwrite($file, $line . PHP_EOL);
         }
 
         fclose($file);
