@@ -21,7 +21,7 @@ Sau khi pull code về thì:
 -   File .env.prd ko dùng, nó chỉ lưu config ở product thôi
 -   Trên cpanel cần sửa 2 tham số sau, nếu ko sẽ KHÔNG upload được file: upload_max_filesize và post_max_size:
 
-![Fix error when upload file](./error-when-upload-file.PNG)
+![Fix error when upload file](./docs/error-when-upload-file.PNG)
 
 Thường thì post_max_size > upload_max_filesize (cpanel gợi ý vậy).  
 Ref: https://chemicloud.com/kb/article/how-to-increase-the-upload_max_filesize-limit-in-cpanel/
