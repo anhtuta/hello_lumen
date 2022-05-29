@@ -60,6 +60,7 @@ class AdminSongController extends Controller
         ]);
 
         $result = new Result();
+        $warnings = [];
         $title = $request->title;
         $artist = $request->artist;
         $pictureBase64 = $request->pictureBase64;
@@ -89,9 +90,10 @@ class AdminSongController extends Controller
         } else {
             // xóa ảnh cũ của song này đi, sau đó sẽ update bằng ảnh mới từ request
             if ($song->image_name && !SongService::removePicture(($song->image_name))) {
-                $result->res("Error: Cannot delete old picture!");
-                return response()->json($result, 400);
+                array_push($warnings, '"image_name" column exists, ' .
+                    'but cannot delete this image, maybe it has been deleted already!');
             }
+            $song->image_name = null;
         }
 
         if (!isset($zing_id)) {
@@ -125,7 +127,7 @@ class AdminSongController extends Controller
         $song->is_deleted = 0;
         $song->save();
 
-        $result->res("New song has been created!");
+        $result->res("New song has been created!", 'Warnings:' . implode('; ', $warnings));
         return response()->json($result);
     }
 
