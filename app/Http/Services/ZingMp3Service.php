@@ -191,14 +191,14 @@ class ZingMp3Service
      * (extension sẽ được chọn sau khi gọi API, ưu tiên chọn .trc, sau đó là .lrc)
      * @return string filename has been saved to server. If Zing doesn't have lyric, return null
      */
-    public function downloadLyric($zing_id = '', $filename = ''): ?string
+    public function downloadLyric($zing_id = '', $filename = '', $title = '', $artist = ''): ?string
     {
         if ($filename == '') {
             $filename = $zing_id . '_' . time();
         }
         $json = $this->getLyricRaw($zing_id);
         if (isset($json->data->sentences)) {
-            return $this->downloadLyricTrc($json->data->sentences, $filename . '.trc');
+            return $this->downloadLyricTrc($json->data->sentences, $filename . '.trc', $title, $artist);
         } else if (isset($json->data->file)) {
             return $this->downloadLyricLrc($json->data->file, $filename . '.lrc');
         }
@@ -232,11 +232,11 @@ class ZingMp3Service
         ]
       }]
      */
-    private function downloadLyricTrc($sentences = [], $filename = ''): ?string
+    private function downloadLyricTrc($sentences = [], $filename = '', $title = '', $artist = ''): ?string
     {
         $lyricFolder = env('LL_LYRIC_FOLDER', '') or die("Unable to open file!");
         $file = fopen($lyricFolder . DIRECTORY_SEPARATOR . $filename, "w");
-        $this->writeMeta($file);
+        $this->writeMeta($file, $title, $artist);
         $cntSen = count($sentences);
         $gap = 0; // gap between each word
 
@@ -277,8 +277,14 @@ class ZingMp3Service
         return $filename;
     }
 
-    private function writeMeta($file)
+    private function writeMeta($file, $title = '', $artist = '')
     {
+        if ($title != '') {
+            fwrite($file, '[ti:' . $title . ']' . PHP_EOL);
+        }
+        if ($artist != '') {
+            fwrite($file, '[ar:' . $artist . ']' . PHP_EOL);
+        }
         fwrite($file, '[by:Tuzaku]' . PHP_EOL);
         fwrite($file, '[source:ZingMp3]' . PHP_EOL);
         fwrite($file, '[date:' . date("Y-m-d") . ']' . PHP_EOL);

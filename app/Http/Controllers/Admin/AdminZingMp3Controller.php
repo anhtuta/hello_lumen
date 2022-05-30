@@ -138,7 +138,7 @@ class AdminZingMp3Controller extends Controller
         }
 
         $lyricName = substr($song->lyric, 0, -4); // remove extension (".trc", ".lrc")
-        $result->successRes($this->zingMp3Service->downloadLyric($zing_id, $lyricName));
+        $result->successRes($this->zingMp3Service->downloadLyric($zing_id, $lyricName, $song->title, $song->artist));
         return response()->json($result);
     }
 }

@@ -104,7 +104,9 @@ class AdminSongController extends Controller
             $song->zing_id = $zing_id;
             $song->lyric = $this->zingMp3Service->downloadLyric(
                 $zing_id,
-                UtilsService::cleanWithHyphen($artist . " - " . $title)
+                UtilsService::cleanWithHyphen($artist . " - " . $title),
+                $title,
+                $artist
             );
             if (isset($image_url)) {
                 $song->image_url = $image_url;
