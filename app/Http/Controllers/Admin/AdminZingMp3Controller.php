@@ -91,7 +91,9 @@ class AdminZingMp3Controller extends Controller
 
     /**
      * Download lyric từ zing theo zing_id, luôn tạo mới file lyric mỗi lần
-     * download, vì tên file có timestamp. API này hiện tại để test thôi
+     * download, vì tên file có timestamp. Download xong save ở server.
+     * Note: API này hiện tại để test thôi
+     * @return JsonResponse Tên file lyric đã lưu (chứ KHÔNG return file cho user)
      */
     public function downloadLyric(Request $request): JsonResponse
     {
@@ -111,6 +113,7 @@ class AdminZingMp3Controller extends Controller
      * Update lyric from Zing, giống với method downloadLyric ở trên, nhưng method
      * này sẽ ghi đè lại file lyric đã có sẵn, do đó nó phải get tên file lyric từ
      * database trước, còn method downloadLyric thì luôn tạo mới file lyric
+     * @return JsonResponse Tên file lưu ở server
      */
     public function updateLyric(Request $request): JsonResponse
     {
