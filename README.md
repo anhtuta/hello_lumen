@@ -113,6 +113,13 @@ Header này cho biết content sẽ được hiển thị trên browser (file mp
 
 Ref: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition
 
+### Eloquent save
+
+-   Vừa dùng để insert, vừa dùng để update
+-   Khi insert thì 2 field `created_at` và `updated_at` sẽ được set tự động
+-   Khi update thì field `updated_at` sẽ được set tự động
+-   Khi update: có lẽ nó sẽ check giá trị của các field update với giá trị cũ, nếu giống nhau thì sẽ ko update. Bằng chứng là field `updated_at` KHÔNG bị thay đổi
+
 ## Official Documentation
 
 Documentation for the framework can be found on the [Lumen website](https://lumen.laravel.com/docs).
