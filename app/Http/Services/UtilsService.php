@@ -12,10 +12,10 @@ class UtilsService
         $res = trim($str);
         // replace all spaces with hyphen
         $res = str_replace(' ', '-', $res);
-        // remove all following special characters: ?,&%!@#$^*
-        $res = preg_replace('/[?,&%!@#$^*\\/]+/', '', $res);
+        // remove all following special characters: ?&%!@#$^*\/'
+        $res = preg_replace('/[?&%!@#$^*\\/\']+/', '', $res);
         // remove multiple hyphens with single hyphen
-        $res = preg_replace('/[-]+/', '-', $res);
+        $res = preg_replace('/[-,]+/', '-', $res);
         return $res;
     }
 
