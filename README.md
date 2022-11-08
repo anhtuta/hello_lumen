@@ -26,6 +26,18 @@ Sau khi pull code về thì:
 Thường thì post_max_size > upload_max_filesize (cpanel gợi ý vậy).  
 Ref: https://chemicloud.com/kb/article/how-to-increase-the-upload_max_filesize-limit-in-cpanel/
 
+## Using docker
+
+Hiện tại thì chưa chạy được, vì nó vẫn chưa connect được tới db ở local. Cụ thể:
+
+-   Build image: `docker build -t anhtuta/hello-lumen:v1 .`
+-   Run container: `docker-compose up`
+-   Install dependencies: `docker-compose exec app composer install`
+-   Ok rồi đó, mở browser và truy cập: http://localhost:8888/api/song/all?page=0&sort=createdDate%2CDESC&sortBy=createdDate&sortOrder=DESC
+-   Hiện tại đang lỗi vì chưa có db
+
+Ref: https://viblo.asia/p/dockerize-ung-dung-laravel-vyDZOao75wj
+
 ## Notes
 
 ### Return an object
