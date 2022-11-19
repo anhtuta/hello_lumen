@@ -2,6 +2,7 @@
 
 namespace App\Http\Services;
 
+use App\Http\Dto\SongMeta;
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
@@ -191,15 +192,16 @@ class ZingMp3Service
      * (extension sẽ được chọn sau khi gọi API, ưu tiên chọn .trc, sau đó là .lrc)
      * @return string filename has been saved to server. If Zing doesn't have lyric, return null
      */
-    public function downloadLyric($zing_id = '', $filename = '', $title = '', $artist = ''): ?string
+    public function downloadLyric($zing_id = '', $filename = '', SongMeta $songMeta = null): ?string
     {
+        if ($zing_id == '') return null;
         if ($filename == '') {
             $filename = $zing_id . '_' . time();
         }
         $json = $this->getLyricRaw($zing_id);
         if (isset($json->data->sentences)) {
-            return $this->downloadLyricTrc($json->data->sentences, $filename . '.trc', $title, $artist);
-        } else if (isset($json->data->file)) {
+            return $this->downloadLyricTrc($json->data->sentences, $filename . '.trc', $songMeta);
+        } elseif (isset($json->data->file)) {
             return $this->downloadLyricLrc($json->data->file, $filename . '.lrc');
         }
 
@@ -232,11 +234,12 @@ class ZingMp3Service
         ]
       }]
      */
-    private function downloadLyricTrc($sentences = [], $filename = '', $title = '', $artist = ''): ?string
+    private function downloadLyricTrc($sentences = [], $filename = '', SongMeta $songMeta = null): ?string
     {
         $lyricFolder = env('LL_LYRIC_FOLDER', '') or die("Unable to open file!");
-        $file = fopen($lyricFolder . DIRECTORY_SEPARATOR . $filename, "w");
-        $this->writeMeta($file, $title, $artist);
+        $filePath = $lyricFolder . DIRECTORY_SEPARATOR . $filename;
+        $file = fopen($filePath, "w");
+        $this->writeMeta($file, $songMeta);
         $cntSen = count($sentences);
         $gap = 0; // gap between each word
 
@@ -277,13 +280,15 @@ class ZingMp3Service
         return $filename;
     }
 
-    private function writeMeta($file, $title = '', $artist = '')
+    private function writeMeta($file, SongMeta $songMeta = null)
     {
-        if ($title != '') {
-            fwrite($file, '[ti:' . $title . ']' . PHP_EOL);
-        }
-        if ($artist != '') {
-            fwrite($file, '[ar:' . $artist . ']' . PHP_EOL);
+        if (isset($songMeta)) {
+            if ($songMeta->title != '') {
+                fwrite($file, '[ti:' . $songMeta->title . ']' . PHP_EOL);
+            }
+            if ($songMeta->artist != '') {
+                fwrite($file, '[ar:' . $songMeta->artist . ']' . PHP_EOL);
+            }
         }
         fwrite($file, '[by:Tuzaku]' . PHP_EOL);
         fwrite($file, '[source:ZingMp3]' . PHP_EOL);

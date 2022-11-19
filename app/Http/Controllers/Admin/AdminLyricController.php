@@ -26,7 +26,7 @@ class AdminLyricController extends Controller
             return response()->json(["code" => 404000, "message" => "Error: file cannot be empty! Please insert file in body's request"], 404);
         }
 
-        if($file->getSize() > MAX_LYRIC_SIZE) {
+        if ($file->getSize() > MAX_LYRIC_SIZE) {
             return response()->json(["code" => 401001, "message" => "Error: Max lyric file size is 1MB"], 400);
         }
 

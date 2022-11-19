@@ -12,6 +12,12 @@ Laravel Lumen is a stunningly fast PHP micro-framework for building web applicat
 Sau khi pull code về thì:
 
 -   Cần tạo file .env ở thư mục gốc, sau đó sửa file này giống với file .env.prd (config phù hợp với local)
+-   Cần tạo các thư mục đã khai báo trong file `.env`, nếu ko lúc download lyric, photo sẽ bị lỗi ko tạo được file (test trên MacOS bị lỗi vậy). Tạo thôi chứ ko cần `chmod 777`, ex:
+    ```
+    LL_PICTURE_FOLDER=/Users/anhtu/LilianaPlayer/Pictures
+    LL_LYRIC_FOLDER=/Users/anhtu/LilianaPlayer/Lyrics
+    LL_MP3_FOLDER=/Users/anhtu/MyMusic
+    ```
 -   Cài thư viện: `composer install` (lệnh này sẽ tải các dependency và lưu vào thư mục vender)
 -   Run project: `php -S localhost:8888 -t public`
 
@@ -23,7 +29,7 @@ Sau khi pull code về thì:
 
 ![Fix error when upload file](./docs/error-when-upload-file.PNG)
 
-Thường thì post_max_size > upload_max_filesize (cpanel gợi ý vậy).  
+Thường thì post_max_size > upload_max_filesize (cpanel gợi ý vậy).
 Ref: https://chemicloud.com/kb/article/how-to-increase-the-upload_max_filesize-limit-in-cpanel/
 
 ## Using docker
@@ -131,6 +137,10 @@ Ref: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Dispositi
 -   Khi insert thì 2 field `created_at` và `updated_at` sẽ được set tự động
 -   Khi update thì field `updated_at` sẽ được set tự động
 -   Khi update: có lẽ nó sẽ check giá trị của các field update với giá trị cũ, nếu giống nhau thì sẽ ko update. Bằng chứng là field `updated_at` KHÔNG bị thay đổi
+
+### Zing MP3 API
+
+Có thể tham khảo bài viết này: https://viblo.asia/p/zing-mp3-toi-da-khai-thac-api-nhu-the-nao-L4x5xvdaZBM
 
 ## Official Documentation
 

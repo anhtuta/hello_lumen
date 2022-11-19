@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Common\Result;
 use App\Http\Controllers\Controller;
+use App\Http\Dto\SongMeta;
+use App\Http\Services\UtilsService;
 use App\Http\Services\ZingMp3Service;
 use App\Models\Song;
 use Illuminate\Http\JsonResponse;
@@ -98,6 +100,10 @@ class AdminZingMp3Controller extends Controller
     public function downloadLyric(Request $request): JsonResponse
     {
         $zing_id = $request->zing_id;
+        $title = $request->title;
+        $artist = $request->artist;
+        $filename = '';
+        $songMeta = null;
         $result = new Result();
 
         if (!isset($zing_id)) {
@@ -105,7 +111,12 @@ class AdminZingMp3Controller extends Controller
             return response()->json($result, 400);
         }
 
-        $result->successRes($this->zingMp3Service->downloadLyric($zing_id));
+        if (isset($title) && isset($artist)) {
+            $filename = UtilsService::cleanWithHyphen($artist . " - " . $title);
+            $songMeta = new SongMeta($title, $artist);
+        }
+
+        $result->successRes($this->zingMp3Service->downloadLyric($zing_id, $filename, $songMeta));
         return response()->json($result);
     }
 
@@ -138,7 +149,11 @@ class AdminZingMp3Controller extends Controller
         }
 
         $lyricName = substr($song->lyric, 0, -4); // remove extension (".trc", ".lrc")
-        $result->successRes($this->zingMp3Service->downloadLyric($zing_id, $lyricName, $song->title, $song->artist));
+        $result->successRes($this->zingMp3Service->downloadLyric(
+            $zing_id,
+            $lyricName,
+            new SongMeta($song->title, $song->artist)
+        ));
         return response()->json($result);
     }
 }

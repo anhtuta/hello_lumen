@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Common\Result;
 use App\Http\Controllers\Controller;
-use App\Http\Services\LyricService;
+use App\Http\Dto\SongMeta;
 use App\Http\Services\SongService;
 use App\Http\Services\UtilsService;
 use App\Http\Services\ZingMp3Service;
@@ -105,8 +105,7 @@ class AdminSongController extends Controller
             $song->lyric = $this->zingMp3Service->downloadLyric(
                 $zing_id,
                 UtilsService::cleanWithHyphen($artist . " - " . $title),
-                $title,
-                $artist
+                new SongMeta($title, $artist)
             );
             if (isset($image_url)) {
                 $song->image_url = $image_url;
