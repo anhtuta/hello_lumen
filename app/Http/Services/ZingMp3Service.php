@@ -241,24 +241,35 @@ class ZingMp3Service
         $file = fopen($filePath, "w");
         $this->writeMeta($file, $songMeta);
         $cntSen = count($sentences);
-        $gap = 0; // gap between each word
+
+        // gap between each word. Cái này do lỗi lyric của Zing. Theo lý thuyết thì endTime của từ
+        // hiện tại phải = startTime của từ tiếp theo. Nhưng đôi khi Zing nó làm lỗi, tức là
+        // endTime từ hiện tại < startTime từ tiếp theo. Ta cần nới rộng endTime từ hiện tại
+        // (tức là cộng gap cho nó) để nó = startTime từ tiếp theo.
+        // Ex: như lyric ở trên comment, giữa các cặp từ Tôi-không, không-tin là có gap,
+        // giữa cặp tin-đời, đời-tôi là ko có gap
+        $gap = 0;
 
         for ($i = 0; $i < $cntSen; $i++) {
             $words = $sentences[$i]->words;
-            $line = $this->formatStartLine($words[0]->startTime);
+            $lineTime = $this->formatStartLine($words[0]->startTime);
+            $line = '';
             $wordCnt = count($words);
-            $emptyLine = '';
+            $emptyLine = ''; // Tạo 1 dòng trống mới nếu từ cuối cùng có time quá lớn
+            $isZeroWord = false; // check if contain a word that has zero time
 
             for ($j = 0; $j < $wordCnt; $j++) {
                 $currWord = $words[$j];
                 $ms = $currWord->endTime - $currWord->startTime;
-                $nextWord = null;
+                if ($ms == 0) $isZeroWord = true;
+                $nextWord = null; // dùng để tính gap
                 if ($j < $wordCnt - 1) {
                     $nextWord = $words[$j + 1];
-                } else if ($i < $cntSen - 1) {
+                } elseif ($i < $cntSen - 1) {
                     $nextWord = $sentences[$i + 1]->words[0];
                 } else {
                     // $j = $wordCnt - 1 & $i = $cntSen - 1: từ cuối cùng của câu cuối cùng
+                    // (từ cuối cùng của file lyric)
                     $nextWord = null;
                 }
 
@@ -272,7 +283,8 @@ class ZingMp3Service
                 $line .= $this->formatWord($currWord->data, $ms + $gap, $j < $wordCnt - 1);
             }
 
-            fwrite($file, $line . PHP_EOL);
+            if ($isZeroWord) $line = $this->mergeZeroWords($line);
+            fwrite($file, $lineTime . $line . PHP_EOL);
             if ($emptyLine != '') fwrite($file, $emptyLine . PHP_EOL);
         }
 
@@ -315,6 +327,91 @@ class ZingMp3Service
             ($minute < 10 ? "0" . $minute : $minute) . ":" .
             ($second < 10 ? "0" . $second : $second) . $fractionStr .
             "]";
+    }
+
+    /**
+     * Gộp các từ có time = 0 vào từ bên cạnh nó. Có thể có 2 từ bên cạnh, ta sẽ chọn từ nào có time bé hơn.
+     * @param $line: ko có đống time [00:27.61] ở đầu, ex: <0>Make <400>the <350>colors <390>in <360>the <4880>sky
+     * Ex, đoạn lyric sau:
+        [00:27.61]<0>Make <400>the <350>colors <390>in <360>the <4880>sky
+        [00:33.99]<0>Green <380>black <370>and <0>blue
+        [00:34.74]<380>Colors <370>in <380>the <1120>sky
+        [00:36.99]<380>I've <0>been <390>searching <360>for <0>a <390>man
+     * Sẽ được convert thành:
+        [00:27.61]<400>Make the <350>colors <390>in <360>the <4880>sky
+        [00:33.99]<380>Green black <370>and blue
+        [00:34.74]<380>Colors <370>in <380>the <1120>sky
+        [00:36.99]<380>I've been <390>searching <360>for a <390>man
+     */
+    private function mergeZeroWords($line)
+    {
+        $wordTimeRegex = '/<\d+>/'; // ex that match: <380>
+        $words = explode(" ", $line); // ex: <380>I've
+        $t = array(); // ex: [380, 0, 390, 360, 0, 390]
+        $w = array(); // ex: ["I've", 'been', 'searching', 'for', 'a', 'man']
+        $zero = array(); // lưu vị trí (index) của các từ có time = 0
+        $len = count($words); // ex: 6. 2 mảng $t, $w phải có kích thước = $len
+
+        // UtilsService::println($line, 'line');
+
+        // Đầu tiên duyệt phần tử, lấy ra 2 phần là time và word, sau đó nhét vào 2 mảng t,w.
+        // Nếu tại phần tử nào có time = 0, ta lấy index đó nhét vào mảng zero
+        for ($i = 0; $i < $len; $i++) {
+            $word = $words[$i];
+            preg_match($wordTimeRegex, $word, $matches);
+            $time = $matches[0]; // ex: <380>
+            $timeMs = intval(substr($time, 1, strlen($time) - 2)); // Remove <, >. Ex: <380> -> 380
+            array_push($t, $timeMs);
+            array_push($w, substr($word, strlen($time)));
+            if ($timeMs == 0) array_push($zero, $i);
+        }
+
+        // Duyệt mảng zero để nhét các từ có time = 0 vào từ bên cạnh nó (mảng w)
+        for ($i = 0; $i < count($zero); $i++) {
+            $idx0 = $zero[$i];
+            if ($idx0 == 0) {
+                $w[1] = $w[$idx0] . ' ' . $w[1];
+            } elseif ($idx0 == $len - 1) {
+                $w[$len - 2] = $w[$len - 2] . ' ' . $w[$idx0];
+            } else {
+                // Chọn từ có time bé hơn để gộp với từ hiện tại (time = 0)
+                if ($t[$idx0 - 1] <= $t[$idx0 + 1]) {
+                    $w[$idx0 - 1] = $w[$idx0 - 1] . ' ' . $w[$idx0];
+                } else {
+                    $w[$idx0 + 1] = $w[$idx0] . ' ' . $w[$idx0 + 1];
+                }
+            }
+        }
+
+        /*
+        Mảng t và w sau biến đổi trên lần lượt là:
+        Array
+        (
+            [0] => 380
+            [1] => 0
+            [2] => 390
+            [3] => 360
+            [4] => 0
+            [5] => 390
+        )
+        Array
+        (
+            [0] => I've been
+            [1] => been
+            [2] => searching
+            [3] => for a
+            [4] => a
+            [5] => man
+        )
+        */
+
+        $newLine = '';
+        // Tạo line mới từ 2 mảng t và w, chỉ cần bỏ các từ có time = 0 đi là được
+        for ($i = 0; $i < $len; $i++) {
+            if ($t[$i] == 0) continue;
+            $newLine .= '<' . $t[$i] . '>' . $w[$i] . ' ';
+        }
+        return trim($newLine);
     }
 
     /**

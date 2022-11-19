@@ -2,8 +2,6 @@
 
 namespace App\Http\Services;
 
-use Illuminate\Support\Arr;
-
 class UtilsService
 {
     // Note: khi update method này cũng phải update method phía FE
@@ -85,6 +83,16 @@ class UtilsService
 
         // return file to response
         readfile($url, false, $context);
+    }
+
+    public static function println($content, $label = null)
+    {
+        echo "<pre>";
+        if (isset($label)) {
+            print_r($label . ': ');
+        }
+        print_r($content);
+        echo "</pre>";
     }
 
     /*
