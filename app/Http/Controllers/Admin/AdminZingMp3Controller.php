@@ -34,7 +34,7 @@ class AdminZingMp3Controller extends Controller
         }
 
         $result->successRes($this->zingMp3Service->suggestion($q));
-        return response()->json($result);
+        return $this->jsonResponse($result);
     }
 
     // API search click vào icon kính lúp trên trang Zing.
@@ -50,7 +50,7 @@ class AdminZingMp3Controller extends Controller
         }
 
         $result->successRes($this->zingMp3Service->searchSong($q));
-        return response()->json($result);
+        return $this->jsonResponse($result);
     }
 
     /**
@@ -69,7 +69,7 @@ class AdminZingMp3Controller extends Controller
         }
 
         $result->successRes($this->zingMp3Service->getLyricUrl($zing_id));
-        return response()->json($result);
+        return $this->jsonResponse($result);
     }
 
     /**
@@ -88,7 +88,7 @@ class AdminZingMp3Controller extends Controller
         }
 
         $result->successRes($this->zingMp3Service->getLyricRaw($zing_id));
-        return response()->json($result);
+        return $this->jsonResponse($result);
     }
 
     /**
@@ -117,7 +117,7 @@ class AdminZingMp3Controller extends Controller
         }
 
         $result->successRes($this->zingMp3Service->downloadLyric($zing_id, $filename, $songMeta));
-        return response()->json($result);
+        return $this->jsonResponse($result);
     }
 
     /**
@@ -154,6 +154,6 @@ class AdminZingMp3Controller extends Controller
             $lyricName,
             new SongMeta($song->title, $song->artist)
         ));
-        return response()->json($result);
+        return $this->jsonResponse($result);
     }
 }

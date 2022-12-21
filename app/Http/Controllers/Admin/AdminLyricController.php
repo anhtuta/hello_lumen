@@ -32,6 +32,6 @@ class AdminLyricController extends Controller
 
         LyricService::saveLyricFile($file);
         $result->res("Lyric has been uploaded and saved in server!");
-        return response()->json($result);
+        return $this->jsonResponse($result);
     }
 }

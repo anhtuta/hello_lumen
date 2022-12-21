@@ -22,7 +22,7 @@ class SongController extends Controller
         $songs = Song::where('is_deleted', '0')
             ->orderBy($sortBy, $sortOrder)
             ->get();
-        return $songs;
+        return $this->jsonResponse($songs);
     }
 
     public function getSongById($id)
@@ -30,7 +30,7 @@ class SongController extends Controller
         $song = Song::find($id);
         $result = new Result();
         $result->successRes($song);
-        return $result;  // return (new Result())->successRes($song);
+        return $this->jsonResponse($result);  // (new Result())->successRes($song);
     }
 
     public function getMp3File(Request $request)
@@ -104,7 +104,7 @@ class SongController extends Controller
     public function getAllTypes()
     {
         $types = DB::select("SELECT DISTINCT type FROM song");
-        return response()->json($types);
+        return $this->jsonResponse($types);
     }
 
     public function updateLyric()

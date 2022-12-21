@@ -41,7 +41,7 @@ class AdminSongController extends Controller
                 ->orWhere('album', 'like', '%' . $searchText . '%');
         }
         $songs = $songs->orderBy($sortBy, $sortOrder)->paginate($size);
-        return $songs;
+        return $this->jsonResponse($songs);
     }
 
     /**
@@ -129,7 +129,7 @@ class AdminSongController extends Controller
         $song->save();
 
         $result->res("New song has been created!", 'Warnings:' . implode('; ', $warnings));
-        return response()->json($result);
+        return $this->jsonResponse($result);
     }
 
     /**
@@ -183,7 +183,7 @@ class AdminSongController extends Controller
         $song->save();
 
         $result->res("Song has been updated!");
-        return response()->json($result);
+        return $this->jsonResponse($result);
     }
 
     public function deleteSong($id)
@@ -214,7 +214,7 @@ class AdminSongController extends Controller
             ->where('id', $id)
             ->update(['is_deleted' => 1]);
         $result->res("Song has been deleted!");
-        return response()->json($result);
+        return $this->jsonResponse($result);
     }
 
     // This method is for running manually, not for FE to call.

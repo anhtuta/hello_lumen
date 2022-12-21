@@ -28,7 +28,7 @@ class ZingMp3Controller extends Controller
 
         $json = $this->zingMp3Service->getStream($zing_id);
         $result->successRes($json);
-        return response()->json($result);
+        return $this->jsonResponse($result);
     }
 
     public function streaming(Request $request)
