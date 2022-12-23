@@ -78,6 +78,7 @@ $router->group(['prefix' => 'api/lyric'], function () use ($router) {
     $router->post('/upload', 'Admin\AdminLyricController@uploadLyricFile');
     $router->get('/download', 'Liliana\LyricController@downloadLyricFile');
     $router->get('/update/offset', 'Liliana\LyricController@updateOffset');
+    $router->get('/add-date', 'Liliana\LyricController@addDateToLyric'); // for testing
 });
 
 /***********

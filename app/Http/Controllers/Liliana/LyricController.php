@@ -21,8 +21,7 @@ class LyricController extends Controller
         } else {
             $type = 'text/plain';
             $headers = ['Content-Type' => $type];
-            $response = new BinaryFileResponse($filePath, 200, $headers);
-            return $response;
+            return new BinaryFileResponse($filePath, 200, $headers);
         }
     }
 
@@ -48,10 +47,10 @@ class LyricController extends Controller
     public function updateOffset(Request $request)
     {
         if (!$request->file) {
-            return response()->json(["code" => 404000, "message" => "Error: \"file\" param cannot be empty!"], 404);
+            return response()->json(["code" => 404001, "message" => "Error: \"file\" param cannot be empty!"], 400);
         }
         if (!$request->offset || $request->offset == 0) {
-            return;
+            return response()->json(["code" => 404002, "message" => "Error: \"offset\" param is not valid!"], 400);
         }
 
         $lyricFolder = env('LL_LYRIC_FOLDER', '');
@@ -95,5 +94,85 @@ class LyricController extends Controller
         rename($tempFilePath, $originalFilePath);
 
         return 'Updated!';
+    }
+
+    /**
+     * Solution này cũng giống Java: edit file xong bị lỗi tên file UTF-8
+     */
+    public function addDateToLyric(Request $request)
+    {
+        $lyricFolder = '/Users/anhtu/Documents/MyProjects/Lyrics'; // env('LL_LYRIC_FOLDER', '');
+        $files = scandir($lyricFolder);
+        $cnt = 0;
+        $total = 0;
+        foreach ($files as $filename) {
+            if (str_ends_with($filename, '.trc') || str_ends_with($filename, '.lrc')) {
+                $total++;
+                // $dateModified = filemtime($lyricFolder . DIRECTORY_SEPARATOR . $filename);
+                // print_r($filename . ' (' . date('Y-m-d', $dateModified) . '), ');
+                if ($this->checkAndAddDateToLyric($lyricFolder, $filename)) {
+                    $cnt++;
+                }
+            }
+        }
+
+        return 'Added date to ' . $cnt . '/' . $total . ' lyric files';
+    }
+
+    /**
+     * Check if a lyric file contains date or not.
+     * If not: add date and return true.
+     * If contains: no nothing and return false.
+     * Note: solution này cũng ko hoạt động được: file bị edit sẽ bị lỗi (có ký tự BOM)
+     */
+    private function checkAndAddDateToLyric($lyricFolder = '', $filename = '')
+    {
+        $originalFilePath = $lyricFolder . DIRECTORY_SEPARATOR . $filename;
+
+        // create a temp file
+        $tempFileName = 'temp_' . time();
+        $tempFilePath = $lyricFolder . DIRECTORY_SEPARATOR . $tempFileName;
+        $tempFile = fopen($tempFilePath, 'w');
+        $content = "";
+        $isContainsDate = false;
+
+        // Travel to every line of file, if found a line that contains date, ignore the file and return
+        // If travel to the end and found no line contains date, create date line
+        if ($originalFile = fopen($originalFilePath, "r")) {
+            while (!feof($originalFile)) {
+                $line = fgets($originalFile);
+                if (str_contains($line, '[date:')) {
+                    $isContainsDate = true;
+                    break;
+                }
+                $content .= $line;
+            }
+
+            if (!$isContainsDate) {
+                $content = "[date:" . $this->getDateModified($originalFilePath) . "]" . PHP_EOL . $content;
+                fwrite($tempFile, $content);
+            }
+
+            fclose($originalFile);
+            fclose($tempFile);
+        }
+
+        if (!$isContainsDate) {
+            // delete original file
+            unlink($originalFilePath);
+
+            // rename temp file to original file name
+            rename($tempFilePath, $originalFilePath);
+            return true;
+        } else {
+            // ignore the file, delete temp file and return
+            unlink($tempFilePath);
+            return false;
+        }
+    }
+
+    private function getDateModified($filePath = '')
+    {
+        return date('Y-m-d', filemtime($filePath));
     }
 }
