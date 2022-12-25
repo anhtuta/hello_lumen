@@ -98,10 +98,14 @@ class LyricController extends Controller
 
     /**
      * Solution này cũng giống Java: edit file xong bị lỗi tên file UTF-8
+     * Ref: https://youtu.be/l1eDU1U49Fw
+     * Update: cái lỗi này là do chạy code Java, PHP để thêm date ở local, sau đó upload lyric file
+     * lên hosting server. Nếu cứ chạy code php trên hosting server để sửa file thì sẽ ko bị lỗi nữa!
      */
     public function addDateToLyric(Request $request)
     {
-        $lyricFolder = '/Users/anhtu/Documents/MyProjects/Lyrics'; // env('LL_LYRIC_FOLDER', '');
+        // $lyricFolder = '/Users/anhtu/Documents/MyProjects/Lyrics';
+        $lyricFolder = env('LL_LYRIC_FOLDER', '');
         $files = scandir($lyricFolder);
         $cnt = 0;
         $total = 0;
@@ -149,7 +153,7 @@ class LyricController extends Controller
             }
 
             if (!$isContainsDate) {
-                $content = "[date:" . $this->getDateModified($originalFilePath) . "]" . PHP_EOL . $content;
+                $content .= PHP_EOL . "[date:" . $this->getDateModified($originalFilePath) . "]";
                 fwrite($tempFile, $content);
             }
 
