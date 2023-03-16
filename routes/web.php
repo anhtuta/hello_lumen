@@ -75,6 +75,7 @@ $router->group(['prefix' => 'api/zing/mp3'], function () use ($router) {
  ***********/
 $router->group(['prefix' => 'api/lyric'], function () use ($router) {
     $router->get('', 'Liliana\LyricController@getLyricByFileName');
+    $router->get('/search', 'Admin\AdminLyricController@searchLyricFiles'); // currently pagination
     $router->post('/upload', 'Admin\AdminLyricController@uploadLyricFile');
     $router->get('/download', 'Liliana\LyricController@downloadLyricFile');
     $router->get('/update/offset', 'Liliana\LyricController@updateOffset');

@@ -95,6 +95,13 @@ class UtilsService
         echo "</pre>";
     }
 
+    public static function humanFilesize($bytes, $decimals = 2)
+    {
+        $sz = 'BKMGTP';
+        $factor = floor((strlen($bytes) - 1) / 3);
+        return sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)) . @$sz[$factor];
+    }
+
     /*
     $http_response_header sẽ trông giống như này
     [
