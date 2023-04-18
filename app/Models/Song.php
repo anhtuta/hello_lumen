@@ -29,6 +29,11 @@ class Song extends Model
 
     protected $appends = array('formatCreatedDate', 'fileName', 'imageName', 'imageUrl');
 
+    // Dù trong db khai báo cột này kiểu INT, nhưng Lumen vẫn ép sang kiểu String, cần phải ép lại sang int
+    protected $casts = [
+        'song_of_the_year' => 'integer',
+    ];
+
     public function getFormatCreatedDateAttribute()
     {
         // Using $this->created_date is fine, but I don't know why
@@ -41,15 +46,18 @@ class Song extends Model
     // we have to create getter to convert it to camelCase
     // (Using $hidden to hide snake_case attributes)
     // I don't know any other solution to convert to camelCase!!!
-    public function getFileNameAttribute() {
+    public function getFileNameAttribute()
+    {
         return $this->attributes['file_name'];
     }
 
-    public function getImageNameAttribute() {
+    public function getImageNameAttribute()
+    {
         return $this->attributes['image_name'];
     }
 
-    public function getImageUrlAttribute() {
+    public function getImageUrlAttribute()
+    {
         return $this->attributes['image_url'];
     }
 }
