@@ -64,6 +64,7 @@ class AdminSongController extends Controller
         $title = $request->title;
         $artist = $request->artist;
         $pictureBase64 = $request->pictureBase64;
+        $song_of_the_year = $request->song_of_the_year;
         $album = $request->album;
         $path = $request->path;
         $type = $request->type;
@@ -122,6 +123,7 @@ class AdminSongController extends Controller
 
         $song->title = $title;
         $song->artist = $artist;
+        $song->song_of_the_year = $song_of_the_year;
         $song->album = $album;
         $song->path = $path;
         $song->type = $type;
@@ -143,6 +145,7 @@ class AdminSongController extends Controller
         $title = $request->title;
         $artist = $request->artist;
         $pictureBase64 = $request->pictureBase64;
+        $song_of_the_year = $request->song_of_the_year;
         $album = $request->album;
         $path = $request->path;
         $lyric = $request->lyric;
@@ -177,6 +180,7 @@ class AdminSongController extends Controller
 
         $song->title = $title;
         $song->artist = $artist;
+        $song->song_of_the_year = $song_of_the_year;
         $song->album = $album;
         $song->path = $path;
         $song->lyric = $lyric;
