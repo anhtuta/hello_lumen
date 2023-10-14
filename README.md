@@ -19,7 +19,11 @@ Sau khi pull code về thì:
     LL_MP3_FOLDER=/Users/anhtu/MyMusic
     ```
 -   Cài thư viện: `composer install` (lệnh này sẽ tải các dependency và lưu vào thư mục vender)
--   Run project: `php -S localhost:8888 -t public`
+-   Run project: `php -S localhost:8888 -t public`, trong đó
+    -   `-S`: option tạo server
+    -   `-t`: option dùng để specify document root directory
+
+Note: phải run app với root directory là thư mục public, do đó nếu deploy lên production (copy toàn bộ code và ném lên hosting), thì đường dẫn phải có prefix là `/public`, ex: `/public/api/some-thing`
 
 ## Chú ý
 
