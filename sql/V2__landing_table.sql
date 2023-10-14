@@ -16,13 +16,13 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `landing_page_order`
+-- Table structure for table `ll_landing_page_order`
 --
 
-DROP TABLE IF EXISTS `landing_page_order`;
+DROP TABLE IF EXISTS `ll_landing_page_order`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
  SET character_set_client = utf8mb4 ;
-CREATE TABLE `landing_page_order` (
+CREATE TABLE `ll_landing_page_order` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `phone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,

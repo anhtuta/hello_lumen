@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class LandingPageOrder extends Model
 {
 
-    protected $table = 'landing_page_order';
+    protected $table = 'll_landing_page_order';
 
     const CREATED_AT = 'order_date';
 
