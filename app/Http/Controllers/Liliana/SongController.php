@@ -82,9 +82,9 @@ class SongController extends Controller
         // Code cũ thì find by file name, code mới thì find by path.
         // Thôi thì cứ giữ cả 2
         if (isset($request->path)) {
-            $songs = DB::select("SELECT * FROM song WHERE path = ?", [$request->path]);
+            $songs = DB::select("SELECT * FROM ll_song WHERE path = ?", [$request->path]);
         } else {
-            $songs = DB::select("SELECT * FROM song WHERE file_name = ?", [$request->file]);
+            $songs = DB::select("SELECT * FROM ll_song WHERE file_name = ?", [$request->file]);
         }
 
         if (!$songs || sizeof($songs) == 0) {
@@ -93,7 +93,7 @@ class SongController extends Controller
         } else {
             $newListens = $songs[0]->listens + 1;
             $id = $songs[0]->id;
-            DB::update("UPDATE song SET listens = ? WHERE id = ?", [$newListens, $id]);
+            DB::update("UPDATE ll_song SET listens = ? WHERE id = ?", [$newListens, $id]);
 
             $result->res("Updated listens: " . $songs[0]->title .
                 " (" . $songs[0]->artist . "): " . $newListens);
@@ -103,7 +103,7 @@ class SongController extends Controller
 
     public function getAllTypes()
     {
-        $types = DB::select("SELECT DISTINCT type FROM song");
+        $types = DB::select("SELECT DISTINCT type FROM ll_song");
         return $this->jsonResponse($types);
     }
 
@@ -122,7 +122,7 @@ class SongController extends Controller
             $lyricFileName = $songs[$i]->artist . ' - ' . $songs[$i]->title . '.trc';
             $filePath = $lyricFolder . DIRECTORY_SEPARATOR . $lyricFileName;
             if (file_exists($filePath)) {
-                DB::update("UPDATE song SET lyric = ? WHERE id = ?", [$lyricFileName, $id]);
+                DB::update("UPDATE ll_song SET lyric = ? WHERE id = ?", [$lyricFileName, $id]);
                 $count++;
                 continue;
             }
@@ -131,7 +131,7 @@ class SongController extends Controller
             $lyricFileName = $songs[$i]->file_name . '.trc';
             $filePath = $lyricFolder . DIRECTORY_SEPARATOR . $lyricFileName;
             if (file_exists($filePath)) {
-                DB::update("UPDATE song SET lyric = ? WHERE id = ?", [$lyricFileName, $id]);
+                DB::update("UPDATE ll_song SET lyric = ? WHERE id = ?", [$lyricFileName, $id]);
                 $count++;
                 continue;
             }
@@ -140,7 +140,7 @@ class SongController extends Controller
             $lyricFileName = $songs[$i]->artist . ' - ' . $songs[$i]->title . '.lrc';
             $filePath = $lyricFolder . DIRECTORY_SEPARATOR . $lyricFileName;
             if (file_exists($filePath)) {
-                DB::update("UPDATE song SET lyric = ? WHERE id = ?", [$lyricFileName, $id]);
+                DB::update("UPDATE ll_song SET lyric = ? WHERE id = ?", [$lyricFileName, $id]);
                 $count++;
                 continue;
             }
@@ -149,7 +149,7 @@ class SongController extends Controller
             $lyricFileName = $songs[$i]->file_name . '.lrc';
             $filePath = $lyricFolder . DIRECTORY_SEPARATOR . $lyricFileName;
             if (file_exists($filePath)) {
-                DB::update("UPDATE song SET lyric = ? WHERE id = ?", [$lyricFileName, $id]);
+                DB::update("UPDATE ll_song SET lyric = ? WHERE id = ?", [$lyricFileName, $id]);
                 $count++;
                 continue;
             }

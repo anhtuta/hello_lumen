@@ -13,7 +13,7 @@ class CreateSongTable extends Migration
      */
     public function up()
     {
-        Schema::create('song', function (Blueprint $table) {
+        Schema::create('ll_song', function (Blueprint $table) {
             $table->id();
             $table->string('title');
             $table->string('artist');
@@ -35,6 +35,6 @@ class CreateSongTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('song');
+        Schema::dropIfExists('ll_song');
     }
 }

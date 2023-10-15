@@ -214,7 +214,7 @@ class AdminSongController extends Controller
         }
 
         // Delete this song in database by updating is_deleted column
-        DB::table('song')
+        DB::table('ll_song')
             ->where('id', $id)
             ->update(['is_deleted' => 1]);
         $result->res("Song has been deleted!");
@@ -236,7 +236,7 @@ class AdminSongController extends Controller
             $path = $songs[$i]->title . ' ' . $songs[$i]->artist;
             $path = str_replace([' '], '-', trim($path));
             $path = str_replace(['?', ' '], '', $path);
-            DB::update("UPDATE song SET path = ? WHERE id = ?", [$path, $id]);
+            DB::update("UPDATE ll_song SET path = ? WHERE id = ?", [$path, $id]);
             $count++;
         }
 
