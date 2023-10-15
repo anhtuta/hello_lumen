@@ -25,6 +25,11 @@ Sau khi pull code về thì:
 
 Note: phải run app với root directory là thư mục public, do đó nếu deploy lên production (copy toàn bộ code và ném lên hosting), thì đường dẫn phải có prefix là `/public`, ex: `/public/api/some-thing`
 
+Forgot password:
+
+-   API login: `/auth/login`, nếu quên password thì tạo mới hash password tại đây: https://blog.nenmongvietnam.com/laravel/public/auth/hash/pw?pw=change-it-to-your-new-password
+-   Sau đó vào phpadmin của hosting mà sửa trực tiếp database
+
 ## Chú ý
 
 -   Khi copy file lên product (hosting), thì phải sửa file .env (bằng cách copy nội dung của file .env.prd vào file .env là được). Còn nữa, copy file lên product chỉ cần copy thư mục `vendor` ở lần đầu tiên thôi, từ lần sau nếu ko update dependency gì (file `composer.json` ko thay đổi) thì ko cần copy lại thư mục này nữa
