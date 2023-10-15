@@ -32,7 +32,7 @@ $router->group(['prefix' => 'auth'], function () use ($router) {
     // $router->post('/register', 'AuthController@register'); // Bao giờ cần đăng ký thì bật :v
     $router->post('/login', 'AuthController@login');
     $router->get('/me', 'AuthController@me');
-    // $router->get('/hash/pw', 'AuthController@hashPw'); // for testing
+    $router->get('/hash/pw', 'AuthController@hashPw'); // for testing
 });
 
 /***********
