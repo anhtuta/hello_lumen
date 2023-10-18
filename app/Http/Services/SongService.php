@@ -12,7 +12,7 @@ class SongService
         $mp3Folder = env('LL_MP3_FOLDER', '');
         $listOfFolders = scandir($mp3Folder);
         $totalFolder = count($listOfFolders);
-        $path = '';
+        $path = null;
 
         for ($i = 0; $i < $totalFolder; $i++) {
             if ($listOfFolders[$i] != '.' && $listOfFolders[$i] != '..') {

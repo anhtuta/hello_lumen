@@ -193,13 +193,14 @@ class AdminSongController extends Controller
     public function deleteSong($id)
     {
         $result = new Result();
+        $deleteMsg = "";
 
         // Check if exist song
         $song = Song::find($id);
         if (!$song) {
             $result->res("Error: Song not found!");
             return response()->json($result, 404);
-        } else if ($song->is_deleted == 1) {
+        } elseif ($song->is_deleted == 1) {
             $result->res("Error: Song has been deleted already!");
             return response()->json($result, 400);
         }
@@ -207,9 +208,13 @@ class AdminSongController extends Controller
         if (isset($song->file_name)) {
             // Delete file associated with this song
             $filePath = SongService::getFilePathByFileName($song->file_name);
-            if (!unlink($filePath)) {
-                $result->res("Error: Cannot delete a file!");
-                return response()->json($result, 404);
+            if ($filePath != null) {
+                if (!unlink($filePath)) {
+                    $result->res("Error: Cannot delete a file!");
+                    return response()->json($result, 404);
+                }
+            } else {
+                $deleteMsg = " But the cannot delete mp3 file because it didn't exist!";
             }
         }
 
@@ -217,7 +222,7 @@ class AdminSongController extends Controller
         DB::table('ll_song')
             ->where('id', $id)
             ->update(['is_deleted' => 1]);
-        $result->res("Song has been deleted!");
+        $result->res("Song has been deleted!" . $deleteMsg);
         return $this->jsonResponse($result);
     }
 
