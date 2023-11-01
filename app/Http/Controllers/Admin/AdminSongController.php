@@ -13,7 +13,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-// TODO Add log for all steps
 class AdminSongController extends Controller
 {
     private ZingMp3Service $zingMp3Service;
@@ -87,7 +86,10 @@ class AdminSongController extends Controller
                     'but cannot delete this image, maybe it has been deleted already!');
             }
             $song->image_name = null;
+            $song->image_url = null;
         }
+
+        Log::info('Create a new song: ' . $title . ' - ' . $artist);
 
         // Start creating a new song
         $this->updateSongObject($song, $request, $type);
@@ -120,11 +122,11 @@ class AdminSongController extends Controller
                 SongService::saveMp3File($file, $type, $fileName);
                 $song->file_name = $fileName;
             }
+            $song->zing_id = null; // Remove zing_id
             $song->lyric = $lyric;
         } else {
             Log::info('Upsert with source of song is Zing');
             $song->zing_id = $zing_id;
-            Log::info('vaoday1');
             if (isset($song->file_name)) {
                 Log::info('Delete previous mp3 file');
                 // Xảy ra với API update: nếu đang source = mp3 file mà muốn chuyển qua Zing,
@@ -133,10 +135,10 @@ class AdminSongController extends Controller
                 if ($filePath != null && !unlink($filePath)) {
                     Log::error("Cannot delete mp3 file!");
                 }
-                $song->file_name = null; // Remove mp3 file
             }
+            $song->file_name = null; // Remove mp3 file
 
-            // Nếu song đã có lyric rồi thì không download nữa. Nếu muốn download lại
+            // Nếu song đã có lyric rồi (API update song) thì không download nữa. Nếu muốn download lại
             // thì có button re-download trên UI, sẽ gọi API khác
             Log::info('Check if lyric is not existed, then download from Zing');
             if (!isset($song->lyric)) {
@@ -159,6 +161,7 @@ class AdminSongController extends Controller
         // Nếu ko truyền param picture_base64 thì sẽ giữ nguyên picture của song (giữ chứ ko xóa nhé!)
         // Nếu có truyền param picture_base64 thì xóa picture hiện tại trước, sau đó thay = picture đó
         if (isset($picture_base64)) {
+            Log::info('Override photo from Zing');
             if ($song->image_name) {
                 // Xoá ảnh trước đó đi (chỉ xảy ra với API update song)
                 SongService::removePicture($song->image_name);
@@ -196,6 +199,8 @@ class AdminSongController extends Controller
             return response()->json($result, 404);
         }
 
+        Log::info('Update song: ' . $song->title . ' - ' . $song->artist);
+
         // Start updating the song
         $this->updateSongObject($song, $request, $song->type);
 
@@ -228,6 +233,8 @@ class AdminSongController extends Controller
             $result->res("Error: Song has been deleted already!");
             return response()->json($result, 400);
         }
+
+        Log::info('Delete song: ' . $song->title . ' - ' . $song->artist);
 
         if (isset($song->file_name)) {
             // Delete file associated with this song

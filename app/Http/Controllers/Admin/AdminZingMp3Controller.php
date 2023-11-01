@@ -10,9 +10,13 @@ use App\Http\Services\ZingMp3Service;
 use App\Models\Song;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class AdminZingMp3Controller extends Controller
 {
+
+    const MSG_ZING_ID_CANNOT_EMPTY = "Error: param 'zing_id' cannot be empty!";
+
     private ZingMp3Service $zingMp3Service;
 
     public function __construct()
@@ -64,7 +68,7 @@ class AdminZingMp3Controller extends Controller
         $result = new Result();
 
         if (!isset($zing_id)) {
-            $result->res("Error: param 'zing_id' cannot be empty!");
+            $result->res(AdminZingMp3Controller::MSG_ZING_ID_CANNOT_EMPTY);
             return response()->json($result, 400);
         }
 
@@ -83,7 +87,7 @@ class AdminZingMp3Controller extends Controller
         $result = new Result();
 
         if (!isset($zing_id)) {
-            $result->res("Error: param 'zing_id' cannot be empty!");
+            $result->res(AdminZingMp3Controller::MSG_ZING_ID_CANNOT_EMPTY);
             return response()->json($result, 400);
         }
 
@@ -107,9 +111,11 @@ class AdminZingMp3Controller extends Controller
         $result = new Result();
 
         if (!isset($zing_id)) {
-            $result->res("Error: param 'zing_id' cannot be empty!");
+            $result->res(AdminZingMp3Controller::MSG_ZING_ID_CANNOT_EMPTY);
             return response()->json($result, 400);
         }
+
+        Log::info('Download lyric from Zing for: ' . $title . ' - ' . $artist);
 
         if (isset($title) && isset($artist)) {
             $filename = UtilsService::cleanWithHyphen($artist . " - " . $title);
@@ -132,7 +138,7 @@ class AdminZingMp3Controller extends Controller
         $result = new Result();
 
         if (!isset($zing_id)) {
-            $result->res("Error: param 'zing_id' cannot be empty!");
+            $result->res(AdminZingMp3Controller::MSG_ZING_ID_CANNOT_EMPTY);
             return response()->json($result, 400);
         }
 
@@ -147,6 +153,8 @@ class AdminZingMp3Controller extends Controller
                 "try to add new lyric first instead of updating!");
             return response()->json($result, 400);
         }
+
+        Log::info('Update lyric from Zing for: ' . $song->title . ' - ' . $song->artist);
 
         $lyricName = substr($song->lyric, 0, -4); // remove extension (".trc", ".lrc")
         $result->successRes($this->zingMp3Service->downloadLyric(

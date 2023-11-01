@@ -11,6 +11,8 @@ use Illuminate\Http\Request;
 
 class ZingMp3Controller extends Controller
 {
+    private ZingMp3Service $zingMp3Service;
+
     public function __construct()
     {
         $this->zingMp3Service = new ZingMp3Service();

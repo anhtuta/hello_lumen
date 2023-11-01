@@ -16,6 +16,8 @@ class ZingMp3Service
     const SECRET_KEY = '2aa2d1c561e809b267f3638c4a307aab';
     const VERSION = '1.6.27';
 
+    private Client $guzzle;
+
     /**
      * TODO: mỗi khi gọi API thì class này sẽ được tạo mới instance, dẫn tới việc
      * phải khởi tạo object Guzzle liên tục, khiến thời gian request lớn!
