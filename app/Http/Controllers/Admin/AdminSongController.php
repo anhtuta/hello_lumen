@@ -103,7 +103,7 @@ class AdminSongController extends Controller
     {
         $title = $request->title;
         $artist = $request->artist;
-        $pictureBase64 = $request->pictureBase64; // photo uploaded from user
+        $picture_base64 = $request->picture_base64; // photo uploaded from user
         $image_url = $request->image_url; // photo URL from zing
         $file = $request->file('file'); // mp3 file for this sone. Use $request->file is OK, too
         $song_of_the_year = $request->song_of_the_year;
@@ -131,16 +131,16 @@ class AdminSongController extends Controller
 
         // Note: tuy chọn song từ Zing nhưng vẫn có thể chọn ảnh khác từ local,
         // lúc này image_url chứa ảnh từ zing đã set ở trên sẽ bị ghi đè
-        // Nếu ko truyền param pictureBase64 thì sẽ giữ nguyên picture của song (giữ chứ ko xóa nhé!)
-        // Nếu có truyền param pictureBase64 thì xóa picture hiện tại trước, sau đó thay = picture đó
-        if (isset($pictureBase64)) {
+        // Nếu ko truyền param picture_base64 thì sẽ giữ nguyên picture của song (giữ chứ ko xóa nhé!)
+        // Nếu có truyền param picture_base64 thì xóa picture hiện tại trước, sau đó thay = picture đó
+        if (isset($picture_base64)) {
             if ($song->image_name) {
                 SongService::removePicture($song->image_name);
             }
             $pictureName = $this->getPictureName($title, $artist);
             $song->image_name = $pictureName;
             $song->image_url = "/api/song/picture?file=" . $pictureName;
-            SongService::savePicture($pictureBase64, $pictureName);
+            SongService::savePicture($picture_base64, $pictureName);
         }
 
         $song->title = $title;

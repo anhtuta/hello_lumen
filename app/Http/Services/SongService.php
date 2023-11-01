@@ -27,11 +27,11 @@ class SongService
         return $path;
     }
 
-    public static function savePicture($pictureBase64, $pictureName)
+    public static function savePicture($picture_base64, $pictureName)
     {
         $pictureFolder = env('LL_PICTURE_FOLDER', '');
         $fp = fopen($pictureFolder . DIRECTORY_SEPARATOR . $pictureName, "w+");
-        fwrite($fp, base64_decode($pictureBase64));
+        fwrite($fp, base64_decode($picture_base64));
         fclose($fp);
     }
 
