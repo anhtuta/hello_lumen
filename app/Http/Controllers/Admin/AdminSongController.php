@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
+// TODO Add log for all steps
 class AdminSongController extends Controller
 {
     private ZingMp3Service $zingMp3Service;
@@ -114,17 +115,41 @@ class AdminSongController extends Controller
         $fileName = $artist . " - " . $title . ".mp3";
 
         if (!isset($zing_id)) {
-            SongService::saveMp3File($file, $type, $fileName);
-            $song->file_name = $fileName;
+            Log::info('Upsert with source of song is mp3 file');
+            if (isset($file)) {
+                SongService::saveMp3File($file, $type, $fileName);
+                $song->file_name = $fileName;
+            }
             $song->lyric = $lyric;
         } else {
+            Log::info('Upsert with source of song is Zing');
             $song->zing_id = $zing_id;
-            $song->lyric = $this->zingMp3Service->downloadLyric(
-                $zing_id,
-                UtilsService::cleanWithHyphen($artist . " - " . $title),
-                new SongMeta($title, $artist)
-            );
+            Log::info('vaoday1');
+            if (isset($song->file_name)) {
+                Log::info('Delete previous mp3 file');
+                // Xảy ra với API update: nếu đang source = mp3 file mà muốn chuyển qua Zing,
+                // thì sẽ xoá cái file mp3 đó đi
+                $filePath = SongService::getFilePathByFileName($song->file_name);
+                if ($filePath != null && !unlink($filePath)) {
+                    Log::error("Cannot delete mp3 file!");
+                }
+                $song->file_name = null; // Remove mp3 file
+            }
+
+            // Nếu song đã có lyric rồi thì không download nữa. Nếu muốn download lại
+            // thì có button re-download trên UI, sẽ gọi API khác
+            Log::info('Check if lyric is not existed, then download from Zing');
+            if (!isset($song->lyric)) {
+                // Xảy ra với API create song: download lyric từ Zing.
+                $song->lyric = $this->zingMp3Service->downloadLyric(
+                    $zing_id,
+                    UtilsService::cleanWithHyphen($artist . " - " . $title),
+                    new SongMeta($title, $artist)
+                );
+            }
+
             if (isset($image_url)) {
+                Log::info('Use photo from Zing');
                 $song->image_url = $image_url;
             }
         }
@@ -135,6 +160,7 @@ class AdminSongController extends Controller
         // Nếu có truyền param picture_base64 thì xóa picture hiện tại trước, sau đó thay = picture đó
         if (isset($picture_base64)) {
             if ($song->image_name) {
+                // Xoá ảnh trước đó đi (chỉ xảy ra với API update song)
                 SongService::removePicture($song->image_name);
             }
             $pictureName = $this->getPictureName($title, $artist);
@@ -148,6 +174,8 @@ class AdminSongController extends Controller
         $song->song_of_the_year = $song_of_the_year;
         $song->album = $album;
         $song->path = $path;
+
+        Log::info('End of updateSongObject');
     }
 
     /**
@@ -210,7 +238,7 @@ class AdminSongController extends Controller
                     return response()->json($result, 404);
                 }
             } else {
-                $deleteMsg = " But the cannot delete mp3 file because it didn't exist!";
+                $deleteMsg = " But cannot delete mp3 file because it didn't exist!";
             }
         }
 
