@@ -39,7 +39,7 @@ class SongService
     {
         $pictureFolder = env('LL_PICTURE_FOLDER', '');
         $picturePath = $pictureFolder . DIRECTORY_SEPARATOR . $pictureName;
-        if (!unlink($picturePath)) {
+        if (file_exists($picturePath) && !unlink($picturePath)) {
             return true;
         }
         return false;

@@ -140,9 +140,9 @@ class AdminSongController extends Controller
 
             // Nếu song đã có lyric rồi (API update song) thì không download nữa. Nếu muốn download lại
             // thì có button re-download trên UI, sẽ gọi API khác
-            Log::info('Check if lyric is not existed, then download from Zing');
             if (!isset($song->lyric)) {
                 // Xảy ra với API create song: download lyric từ Zing.
+                Log::info('Download lyric from Zing');
                 $song->lyric = $this->zingMp3Service->downloadLyric(
                     $zing_id,
                     UtilsService::cleanWithHyphen($artist . " - " . $title),
@@ -161,10 +161,10 @@ class AdminSongController extends Controller
         // Nếu ko truyền param picture_base64 thì sẽ giữ nguyên picture của song (giữ chứ ko xóa nhé!)
         // Nếu có truyền param picture_base64 thì xóa picture hiện tại trước, sau đó thay = picture đó
         if (isset($picture_base64)) {
-            Log::info('Override photo from Zing');
-            if ($song->image_name) {
-                // Xoá ảnh trước đó đi (chỉ xảy ra với API update song)
-                SongService::removePicture($song->image_name);
+            Log::info('Use photo from admin local file (May override photo from Zing)');
+            // Xoá ảnh trước đó đi (chỉ xảy ra với API update song)
+            if ($song->image_name && !SongService::removePicture($song->image_name)) {
+                Log::info("Cannot delete previous photo, maybe it didn't exist");
             }
             $pictureName = $this->getPictureName($title, $artist);
             $song->image_name = $pictureName;
