@@ -16,6 +16,10 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 COPY . .
 
 # Install dependencies
+# We run composer install from the image, so vendor and composer.lock only exist in the image, not on the host.
+# In the docker compose file, we bind mount the current directory (which has composer.json but not vendor and
+# composer.lock) to /var/www/html, so it replaces the image's /var/www/html
+# Ref: https://stackoverflow.com/a/61261469/7688028
 RUN composer install
 
 # Start php server: no need, we will start it in docker-compose.yml

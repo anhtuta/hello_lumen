@@ -67,6 +67,8 @@ Dùng cách này sẽ không cần nginx nữa. Khi build image, ta sẽ install
 -   Stop all containers: `docker-compose down`
 -   Remove image when updating composer dependencies: `docker rmi hello-lumen:v1`
 
+Note: cách này không có thư mục vendor ở ngoài, do đó IDE sẽ báo lỗi code. Ta có thể copy thư mục vendor từ trong container ra ngoài host (chưa rõ làm ntn :v)
+
 Ref:
 
 -   https://yossiabramov.com/blog/setting-up-lumen-and-mysql-with-docker-part-i
