@@ -1,4 +1,5 @@
 DELETE FROM
     ll_user
 WHERE
-    username IN ('tzk', 'demo');
+    id > 1
+    AND username IN ('tzk', 'demo');

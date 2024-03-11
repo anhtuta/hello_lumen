@@ -7,6 +7,8 @@
 
 Laravel Lumen is a stunningly fast PHP micro-framework for building web applications with expressive, elegant syntax. We believe development must be an enjoyable, creative experience to be truly fulfilling. Lumen attempts to take the pain out of development by easing common tasks used in the majority of web projects, such as routing, database abstraction, queueing, and caching.
 
+This project works on Php 7, NOT works on PHP 8 (because of Guzzle)
+
 ## How to run on local
 
 Sau khi pull code về thì:
@@ -43,6 +45,8 @@ Ref: https://chemicloud.com/kb/article/how-to-increase-the-upload_max_filesize-l
 
 ## Using docker
 
+**This one is outdated, not use anymore**
+
 Hiện tại thì chưa chạy được, vì nó vẫn chưa connect được tới db ở local. Cụ thể:
 
 -   Build image: `docker build -t anhtuta/hello-lumen:v1 .`
@@ -52,6 +56,21 @@ Hiện tại thì chưa chạy được, vì nó vẫn chưa connect được t�
 -   Hiện tại đang lỗi vì chưa có db
 
 Ref: https://viblo.asia/p/dockerize-ung-dung-laravel-vyDZOao75wj
+
+## Using docker compose
+
+Dùng cách này sẽ không cần nginx nữa. Khi build image, ta sẽ install dependencies bên trong image luôn, do đó mỗi khi sửa file composer.json đều phải xoá image đi và run lại từ đầu:
+
+-   Run all containers: `docker-compose up -d`
+-   Connect to database to init some data (can use MySQL workbench), then run all SQL files in the `/sql` folder, to create sample data
+-   Go to URL and see the result: http://localhost:8888/api/song/all?page=0&sort=createdDate%2CDESC&sortBy=createdDate&sortOrder=DESC. That's it!
+-   Stop all containers: `docker-compose down`
+-   Remove image when updating composer dependencies: `docker rmi hello-lumen:v1`
+
+Ref:
+
+-   https://yossiabramov.com/blog/setting-up-lumen-and-mysql-with-docker-part-i
+-   https://yossiabramov.com/blog/setting-up-lumen-and-mysql-with-docker-part-ii
 
 ## Notes
 

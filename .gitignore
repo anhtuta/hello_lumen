@@ -3,3 +3,5 @@
 Homestead.json
 Homestead.yaml
 .phpunit.result.cache
+.docker/
+.DS_Store

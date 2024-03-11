@@ -1,19 +1,49 @@
 version: '3.9'
-services:
 
+services:
   #PHP Service
   app:
-    image: anhtuta/hello-lumen:v1
-    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: hello-lumen:v1
+    restart: always
+    ports:
+      - "8888:8888"
     volumes:
       - ./:/var/www/html
+      # Create a volume for the vendor folder, docker will use it to install the dependencies.
+      # Note: this folder only exist inside the container, not in the host machine.
+      - /var/www/html/vendor/
+      # Cannot use bind mount, otherwise it cannot install dependencies inside docker container
+      # - ./vendor:/var/www/html/vendor
+    environment:
+      DB_HOST: mysqldb
+    depends_on:
+      - mysqldb
+    command: php -S app:8888 -t public
 
   #Nginx Service
-  webserver:
-    image: nginx:1.23-alpine
-    restart: unless-stopped
+  # webserver:
+  #   image: nginx:1.23-alpine
+  #   restart: unless-stopped
+  #   ports:
+  #     - "8888:80"
+  #   volumes:
+  #     - ./:/var/www/html
+  #     - ./nginx.conf:/etc/nginx/conf.d/default.conf
+
+  mysqldb:
+    image: mysql:8
+    restart: always
+    # No need to expose the port, because it’s only used internally by the app service.
+    # Exposing it for debugging purposes. We can access the database using a MySQL client.
     ports:
-      - "8888:80"
+      - "3307:3306"
     volumes:
-      - ./:/var/www/html
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./.docker/data/mysqldb:/var/lib/mysql
+    environment:
+      # Pass Lumen’s .env variables to our docker-compose.yml:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
